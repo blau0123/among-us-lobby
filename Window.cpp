@@ -49,7 +49,6 @@ bool Window::initializeObjects()
 	cube = new Cube(5.0f);
 
 	// Create a point cloud consisting of cube vertices.
-	// cubePoints = new PointCloud("foo", 100);
 	bunnyPoints = new PointCloud("obj/bunny.obj", 10);
 	bearPoints = new PointCloud("obj/bear.obj", 10);
 	sandalPoints = new PointCloud("obj/SandalF20.obj", 10);

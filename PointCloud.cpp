@@ -44,6 +44,27 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	 * TODO: Section 4, you will need to normalize the object to fit in the
 	 * screen. 
 	 */
+	// Find the min and max coords for each dimension for each vertex
+	float x_min = points[0].x, y_min = points[0].y, z_min = points[0].z;
+	float x_max = points[0].x, y_max = points[0].y, z_max = points[0].z;
+	for (int i = 0; i < points.size(); i++) {
+		x_max = std::max(x_max, points[i].x);
+		y_max = std::max(y_max, points[i].y);
+		z_max = std::max(z_max, points[i].z);
+		x_min = std::min(x_min, points[i].x);
+		y_min = std::min(y_min, points[i].y);
+		z_min = std::min(z_min, points[i].z);
+	}
+
+	// Find the center point of the model (half way between the minimum and maximum values) and shift
+	float x_half = (x_max + x_min) / 2;
+	float y_half = (y_max + y_min) / 2;
+	float z_half = (z_max + z_min) / 2;
+	for (int i = 0; i < points.size(); i++) {
+		points[i].x -= x_half;
+		points[i].y -= y_half;
+		points[i].z -= z_half;
+	}
 
 	// Set the model matrix to an identity matrix. 
 	model = glm::mat4(1);
