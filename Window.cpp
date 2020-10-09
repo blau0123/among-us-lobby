@@ -54,9 +54,7 @@ bool Window::initializeObjects()
 	bearPoints = new PointCloud("obj/bear.obj", 100);
 	sandalPoints = new PointCloud("obj/SandalF20.obj", 100);
 
-	// use Window::keyCallback to change the rendered object by key presses (like press 1 to show bear, 2 to show bunny, etc)
-	// For changing the point size, check out glPointSize
-	// Set cube to be the first to display
+	// Set the bear point cloud to be the first thing to show
 	currObj = bearPoints;
 
 	return true;
@@ -67,6 +65,8 @@ void Window::cleanUp()
 	// Deallcoate the objects.
 	delete cube;
 	delete bunnyPoints;
+	delete bearPoints;
+	delete sandalPoints;
 	delete cubePoints;
 
 	// Delete the shader program.
@@ -177,6 +177,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 	// Check for a key press.
 	if (action == GLFW_PRESS)
 	{
+		GLfloat sizeIncrement = 10;
 		switch (key)
 		{
 		case GLFW_KEY_ESCAPE:
@@ -196,11 +197,11 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			break;
 		case GLFW_KEY_L:
 			// Increase point size
-			// GLfloat sizeIncrement = 5;
-			// currObj->updatePointSize(sizeIncrement);
+			((PointCloud*)currObj)->updatePointSize(sizeIncrement);
 			break;
 		case GLFW_KEY_S:
 			// Decrease point size
+			((PointCloud*)currObj)->updatePointSize(-sizeIncrement);
 			break;
 		default:
 			break;

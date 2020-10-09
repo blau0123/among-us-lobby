@@ -11,8 +11,6 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	 * Modify this to read points from an obj file.
 	 */
 	std::ifstream objFile(objFilename);
-	// Vector of all the points that we read from the OBJ file
-	//std::vector<glm::vec3> points;
 	// Check whether the file can be opened before reading
 	if (objFile.is_open()) {
 		// Get one line at a time
@@ -41,19 +39,6 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	}
 
 	objFile.close();
-	std::cout << points[0].x << points[0].y << points[0].z;
-	
-	/*
-	points = {
-		glm::vec3(-2.5, 2.5, 2.5),
-		glm::vec3(-2.5, -2.5, 2.5),
-		glm::vec3(2.5, -2.5, 2.5),
-		glm::vec3(2.5, 2.5, 2.5),
-		glm::vec3(-2.5, 2.5, -2.5),
-		glm::vec3(-2.5, -2.5, -2.5),
-		glm::vec3(2.5, -2.5, -2.5),
-		glm::vec3(2.5, 2.5, -2.5)
-	};*/
 
 	/*
 	 * TODO: Section 4, you will need to normalize the object to fit in the
@@ -128,7 +113,13 @@ void PointCloud::updatePointSize(GLfloat size)
 	/*
 	 * TODO: Section 3: Implement this function to adjust the point size.
 	 */
-	// glSetPointSize(size);
+	if (pointSize + size < 0) {
+		std::cerr << "Attempting to update pointSize to a negative value";
+	}
+	else {
+		pointSize += size;
+		std::cout << "new point size: " << pointSize << endl;
+	}
 }
 
 void PointCloud::spin(float deg)
