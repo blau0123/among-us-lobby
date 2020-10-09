@@ -113,8 +113,8 @@ void PointCloud::updatePointSize(GLfloat size)
 	/*
 	 * TODO: Section 3: Implement this function to adjust the point size.
 	 */
-	if (pointSize + size < 0) {
-		std::cerr << "Attempting to update pointSize to a negative value";
+	if (pointSize + size <= 0) {
+		std::cerr << "Attempting to update pointSize to <= 0: " << pointSize + size << endl;
 	}
 	else {
 		pointSize += size;

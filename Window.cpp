@@ -50,9 +50,9 @@ bool Window::initializeObjects()
 
 	// Create a point cloud consisting of cube vertices.
 	// cubePoints = new PointCloud("foo", 100);
-	bunnyPoints = new PointCloud("obj/bunny.obj", 100);
-	bearPoints = new PointCloud("obj/bear.obj", 100);
-	sandalPoints = new PointCloud("obj/SandalF20.obj", 100);
+	bunnyPoints = new PointCloud("obj/bunny.obj", 10);
+	bearPoints = new PointCloud("obj/bear.obj", 10);
+	sandalPoints = new PointCloud("obj/SandalF20.obj", 10);
 
 	// Set the bear point cloud to be the first thing to show
 	currObj = bearPoints;
@@ -177,7 +177,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 	// Check for a key press.
 	if (action == GLFW_PRESS)
 	{
-		GLfloat sizeIncrement = 10;
+		GLfloat sizeIncrement = 1;
 		switch (key)
 		{
 		case GLFW_KEY_ESCAPE:
