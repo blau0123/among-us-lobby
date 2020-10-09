@@ -19,6 +19,9 @@ public:
 	// Objects to Render
 	static Cube* cube;
 	static PointCloud * cubePoints;
+	static PointCloud* bunnyPoints;
+	static PointCloud* sandalPoints;
+	static PointCloud* bearPoints;
 
 	// Camera Matrices
 	static glm::mat4 projection;
