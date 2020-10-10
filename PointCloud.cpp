@@ -60,10 +60,25 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	float x_half = (x_max + x_min) / 2;
 	float y_half = (y_max + y_min) / 2;
 	float z_half = (z_max + z_min) / 2;
+
+	// Finding the max length in the x, y, z direction and scale down to fit in 1x1x1 bounding box
+	float max_len = std::max(std::max(x_max - x_min, y_max - y_min), z_max - z_min);
+	float scaling_factor = 15;
+
 	for (int i = 0; i < points.size(); i++) {
 		points[i].x -= x_half;
 		points[i].y -= y_half;
 		points[i].z -= z_half;
+
+		// Scale down model to fit in 1x1x1 bounding box
+		points[i].x /= max_len;
+		points[i].y /= max_len;
+		points[i].z /= max_len;
+
+		// Rescale by scaling the 1x1x1 bounding box by some scaling factor
+		points[i].x *= scaling_factor;
+		points[i].y *= scaling_factor;
+		points[i].z *= scaling_factor;
 	}
 
 	// Set the model matrix to an identity matrix. 
