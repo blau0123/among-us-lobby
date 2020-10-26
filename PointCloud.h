@@ -13,11 +13,9 @@ class PointCloud : public Object
 private:
 	std::vector<glm::vec3> points;
 	std::vector<glm::vec3> vertexNorms;
-	// faces: ((v_x, vn_x), (v_y, vn_y), (v_z, vn_z)) <-- vector<glm::vec2> (1 element of faces)
-	// faces will contain the indices to those vertex-vertex normal pairs
-	std::vector<vector<glm::vec2>> faces;
+	std::vector<glm::ivec3> indices;
 
-	GLuint VAO, VBO;
+	GLuint VAO, VBO, EBO;
 	GLfloat pointSize;
 
 public:

@@ -39,18 +39,15 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 				vertexNorms.push_back(vNorm);
 			}
 			else if (label == "f") {
-				vector<glm::vec2> face;
-				// Get the three vertex-vertex normal pairs (the x, y, z)
-				for (int i = 0; i < 3; i++) {
-					std::string pairAsStr;
-					glm::vec2 pair;
-					// Get the pairs separated by // from the file and create a vec2
-					ss >> pairAsStr;
-					pair.x = std::stof(pairAsStr.substr(0, pairAsStr.find("//")));
-					pair.y = std::stof(pairAsStr.substr(pairAsStr.find("//") + 2, pairAsStr.length()));
-					face.push_back(pair);
-				}
-				faces.push_back(face);
+				glm::ivec3 faceIndices;
+				// Get the three vertex-vertex normal index pairs (the x, y, z)
+				std::string pairsX, pairsY, pairsZ;
+				ss >> pairsX >> pairsY >> pairsZ;
+				// Subtract one because indices start at 1, so will be one off of the real vertex indices
+				faceIndices.x = std::stoi(pairsX.substr(0, pairsX.find("//"))) - 1;
+				faceIndices.y = std::stoi(pairsY.substr(0, pairsY.find("//"))) - 1;
+				faceIndices.z = std::stoi(pairsZ.substr(0, pairsZ.find("//"))) - 1;
+				indices.push_back(faceIndices);
 			}
 		}
 	}
@@ -62,7 +59,7 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 
 	std::cout << "Number of points read for object " << objFilename << ": " << points.size() << std::endl;
 	std::cout << "Number of vertex norms read for object " << objFilename << ": " << vertexNorms.size() << std::endl;
-	std::cout << "Number of faces read for object " << objFilename << ": " << faces.size() << std::endl;
+	std::cout << "Number of faces read for object " << objFilename << ": " << indices.size() << std::endl;
 
 	/*
 	 * TODO: Section 4, you will need to normalize the object to fit in the
@@ -126,6 +123,11 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
+	// Generate EBO, bind the EBO to the bound VAO, and send the index data
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3)* indices.size(), indices.data(), GL_STATIC_DRAW);
+
 	// Unbind the VBO/VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -133,8 +135,9 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 
 PointCloud::~PointCloud() 
 {
-	// Delete the VBO and the VAO.
+	// Delete the VBO, EBO and the VAO.
 	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 	glDeleteVertexArrays(1, &VAO);
 }
 
@@ -153,10 +156,12 @@ void PointCloud::draw(const glm::mat4& view, const glm::mat4& projection, GLuint
 	glBindVertexArray(VAO);
 
 	// Set point size
-	glPointSize(pointSize);
+	// glPointSize(pointSize);
 
 	// Draw the points 
-	glDrawArrays(GL_POINTS, 0, points.size());
+	// glDrawArrays(GL_POINTS, 0, points.size());
+	// Draw the points using triangles, indexed with the EBO
+	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);
