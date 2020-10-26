@@ -12,6 +12,8 @@ class PointCloud : public Object
 {
 private:
 	std::vector<glm::vec3> points;
+	std::vector<glm::vec4> testPoints;
+
 	std::vector<glm::vec3> vertexNorms;
 	std::vector<glm::ivec3> indices;
 
@@ -27,6 +29,7 @@ public:
 
 	glm::vec3 lerp(glm::vec3 start, glm::vec3 end, float t);
 	void updatePointSize(GLfloat size);
+	void updateModelSize(double yoffset);
 	void spin(float deg);
 };
 

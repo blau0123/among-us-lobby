@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 PointCloud::PointCloud(std::string objFilename, GLfloat pointSize) 
 	: pointSize(pointSize)
@@ -31,6 +32,8 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 				ss >> point.x >> point.y >> point.z;
 				// Process the point (save it)
 				points.push_back(point);
+				glm::vec4 homogPoint(point, 1.0f);
+				testPoints.push_back(homogPoint);
 			}
 			else if (label == "vn") {
 				// Like the vertex, read the float numbers (next three words) and use them as the vertex norm coordinates
@@ -175,8 +178,34 @@ glm::vec3 PointCloud::lerp(glm::vec3 start, glm::vec3 end, float t) {
 void PointCloud::update()
 {
 	// Spin the cube by 1 degree
-	spin(0.1f);
+	// spin(0.1f);
 }
+
+void PointCloud::updateModelSize(double yoffset) {
+	/*
+	Scaling matrix form:
+	[
+		x 0 0 0
+		0 y 0 0
+		0 0 z 0
+		0 0 0 1
+	], where x, y, and z are the scaling factors for each axis
+	*/
+	if (yoffset > 0) {
+		// Loop through each point and scale it
+		for (int i = 0; i < points.size(); i++) {
+			// Create model vector for the given point
+			/*
+			glm::vec4 model(points[i].x, points[i].y, points[i].z, 1.0f);
+			glm::mat4 scaleMatrix = glm::scale(glm::vec3(2.0f, 2.0f, 2.0f));
+			glm::vec4 result = scaleMatrix * model;
+			std::cout << glm::to_string(result) << std::endl;
+			points[i] = result;
+			*/
+		}
+	}
+}
+
 
 void PointCloud::updatePointSize(GLfloat size) 
 {

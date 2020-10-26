@@ -167,6 +167,11 @@ void Window::displayCallback(GLFWwindow* window)
 	glfwSwapBuffers(window);
 }
 
+void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+	// If y < 0, then scroll down & if y > 0, then scroll up
+	((PointCloud*)currObj)->updateModelSize(yoffset);
+}
+
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	/*
