@@ -32,6 +32,26 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 				// Process the point (save it)
 				points.push_back(point);
 			}
+			else if (label == "vn") {
+				// Like the vertex, read the float numbers (next three words) and use them as the vertex norm coordinates
+				glm::vec3 vNorm;
+				ss >> vNorm.x >> vNorm.y >> vNorm.z;
+				vertexNorms.push_back(vNorm);
+			}
+			else if (label == "f") {
+				vector<glm::vec2> face;
+				// Get the three vertex-vertex normal pairs (the x, y, z)
+				for (int i = 0; i < 3; i++) {
+					std::string pairAsStr;
+					glm::vec2 pair;
+					// Get the pairs separated by // from the file and create a vec2
+					ss >> pairAsStr;
+					pair.x = std::stof(pairAsStr.substr(0, pairAsStr.find("//")));
+					pair.y = std::stof(pairAsStr.substr(pairAsStr.find("//") + 2, pairAsStr.length()));
+					face.push_back(pair);
+				}
+				faces.push_back(face);
+			}
 		}
 	}
 	else {
@@ -39,6 +59,10 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	}
 
 	objFile.close();
+
+	std::cout << "Number of points read for object " << objFilename << ": " << points.size() << std::endl;
+	std::cout << "Number of vertex norms read for object " << objFilename << ": " << vertexNorms.size() << std::endl;
+	std::cout << "Number of faces read for object " << objFilename << ": " << faces.size() << std::endl;
 
 	/*
 	 * TODO: Section 4, you will need to normalize the object to fit in the
@@ -63,7 +87,7 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 
 	// Finding the max length in the x, y, z direction and scale down to fit in 1x1x1 bounding box
 	float max_len = std::max(std::max(x_max - x_min, y_max - y_min), z_max - z_min);
-	float scaling_factor = 15;
+	float scaling_factor = 14;
 
 	for (int i = 0; i < points.size(); i++) {
 		points[i].x -= x_half;
@@ -97,6 +121,7 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	// Bind VBO to the bound VAO, and store the point data
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * points.size(), points.data(), GL_STATIC_DRAW);
+
 	// Enable Vertex Attribute 0 to pass point data through to the shader
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
@@ -136,6 +161,10 @@ void PointCloud::draw(const glm::mat4& view, const glm::mat4& projection, GLuint
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);
 	glUseProgram(0);
+}
+
+glm::vec3 PointCloud::lerp(glm::vec3 start, glm::vec3 end, float t) {
+	return start * (1.0f - t) + end * t;
 }
 
 void PointCloud::update()
