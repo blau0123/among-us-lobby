@@ -18,6 +18,9 @@ Object* currObj;
 // Projection matrix:
 glm::mat4 Window::projection; 
 
+// Scale matrix:
+glm::mat4 Window::scale;
+
 // View Matrix:
 glm::vec3 Window::eyePos(0, 0, 20);			// Camera position.
 glm::vec3 Window::lookAtPoint(0, 0, 0);		// The point we are looking at.

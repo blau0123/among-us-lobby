@@ -25,6 +25,7 @@ public:
 
 	// Camera Matrices
 	static glm::mat4 projection;
+	static glm::mat4 scale;
 	static glm::mat4 view;
 	static glm::vec3 eyePos, lookAtPoint, upVector;
 

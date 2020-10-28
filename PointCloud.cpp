@@ -189,20 +189,22 @@ void PointCloud::updateModelSize(double yoffset) {
 		0 y 0 0
 		0 0 z 0
 		0 0 0 1
-	], where x, y, and z are the scaling factors for each axis
+	], where x, y, and z are the scaling factors for each axis.
+	Model matrix form:
+	[
+		x1 x2 x3 ... xd
+		y1 y2 y3 ... yd
+		z1 z2 z3 ... zd
+		w1 w2 w3 ... wd
+	]
 	*/
 	if (yoffset > 0) {
-		// Loop through each point and scale it
-		for (int i = 0; i < points.size(); i++) {
-			// Create model vector for the given point
-			/*
-			glm::vec4 model(points[i].x, points[i].y, points[i].z, 1.0f);
-			glm::mat4 scaleMatrix = glm::scale(glm::vec3(2.0f, 2.0f, 2.0f));
-			glm::vec4 result = scaleMatrix * model;
-			std::cout << glm::to_string(result) << std::endl;
-			points[i] = result;
-			*/
-		}
+		// Scale the model up by multiplying a scale matrix
+		model = model * glm::scale(glm::vec3(1.1f, 1.1f, 1.1f));
+	}
+	else if (yoffset < 0) {
+		// Scale the model up by multiplying a scale matrix
+		model = model * glm::scale(glm::vec3(0.9f, 0.9f, 0.9f));
 	}
 }
 
