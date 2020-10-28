@@ -105,6 +105,10 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 		points[i].z *= scaling_factor;
 	}
 
+	// Initialize rotation variables
+	movement = -1;
+	lastCursorPos = glm::vec3(0.0f);
+
 	// Set the model matrix to an identity matrix. 
 	model = glm::mat4(1);
 
@@ -189,14 +193,10 @@ void PointCloud::updateModelSize(double yoffset) {
 		0 y 0 0
 		0 0 z 0
 		0 0 0 1
-	], where x, y, and z are the scaling factors for each axis.
-	Model matrix form:
-	[
-		x1 x2 x3 ... xd
-		y1 y2 y3 ... yd
-		z1 z2 z3 ... zd
-		w1 w2 w3 ... wd
 	]
+	Model matrix is already set in the vertex shader. Every frame (every call to draw),
+	the uniform variable "model" is set. To do transformations (rotations, scale, etc.),
+	we can concatenate the transformations by multiplying them with this model matrix
 	*/
 	if (yoffset > 0) {
 		// Scale the model up by multiplying a scale matrix
@@ -208,6 +208,76 @@ void PointCloud::updateModelSize(double yoffset) {
 	}
 }
 
+void PointCloud::initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos) {
+	std::cout << windowWidth << " " << windowHeight << " " << cursorPos.x << "," << cursorPos.y << std::endl;
+
+	// Turn on user interactive rotations
+	movement = 0;
+
+	// Map the mouse position to a logical sphere location and keep track of the last known mouse position
+	lastCursorPos = trackBallMapping(windowWidth, windowHeight, cursorPos);
+
+	// Set the OpenGL state to modify the MODELVIEW matrix
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void PointCloud::rotateModel(int windowWidth, int windowHeight, glm::vec2 currCursorPos) {
+	glm::vec3 currSpherePos, rotateDirection;
+	float rot_angle;
+
+	// Check which type of movement we are doing
+	switch (movement) {
+		// If the movement is ROTATE
+		case 0: {
+			// Map this mouse position to it's logical sphere location
+			currSpherePos = trackBallMapping(windowWidth, windowHeight, currCursorPos);
+
+			// Determine the direction that the object should be rotated in logical sphere
+			rotateDirection = currSpherePos - lastCursorPos;
+			float velocity = glm::length(rotateDirection);
+
+			// Only rotate if there is a decent amount of movement
+			if (velocity > 0.0001f) {
+				// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
+				glm::vec3 rotAxis = glm::cross(lastCursorPos, currSpherePos);
+				// rot_angle = velocity*;
+
+				// Get the current ModelView matrix and save it
+				GLfloat objectXform;
+				glGetFloatv(GL_MODELVIEW_MATRIX, &objectXform);
+				glLoadIdentity();
+				// glRotatef(rot_angle, rotAxis.x, rotAxis.y, rotAxis.z);
+				// Multiplies the current ModelView matrix by the matrix that we saved earlier
+				// glMultMatrixf(&objectXform)
+				// Force redraw
+
+				// Save the current point location for the next movement
+				lastCursorPos = currSpherePos;
+			}
+			
+			break;
+		}
+	}
+}
+
+void PointCloud::endRotateModel() {
+	// Turn off rotation
+	movement = -1;
+}
+
+// Calculate 3D position of a projected unit vector onto the xy-plane
+glm::vec3 PointCloud::trackBallMapping(int windowWidth, int windowHeight, glm::vec2 cursorPos) {
+	glm::vec3 v;
+	float d;
+	v.x = (2.0 * cursorPos.x - windowWidth) / windowWidth;
+	v.y = (windowHeight - 2.0 * cursorPos.y) / windowHeight;
+	v.z = 0.0f;
+	d = glm::length(v);
+	d = (d < 1.0f) ? d : 1.0f;
+	v.z = sqrtf(1.001f - d * d);
+	v = glm::normalize(v);
+	return v;
+}
 
 void PointCloud::updatePointSize(GLfloat size) 
 {

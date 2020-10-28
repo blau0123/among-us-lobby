@@ -19,6 +19,12 @@ void setup_callbacks(GLFWwindow* window)
 
 	// Set the mouse wheel scroll callback
 	glfwSetScrollCallback(window, Window::scrollCallback);
+
+	// Set the mouse click callback
+	glfwSetMouseButtonCallback(window, Window::onMouseButtonDown);
+
+	// Set the mouse move callback
+	glfwSetCursorPosCallback(window, Window::onMouseMove);
 }
 
 void setup_opengl_settings()

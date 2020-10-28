@@ -175,6 +175,27 @@ void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) 
 	((PointCloud*)currObj)->updateModelSize(yoffset);
 }
 
+void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		if (action == GLFW_PRESS) {
+			// Get position of cursor when clicked
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+			glm::vec2 pos(xpos, ypos);
+			((PointCloud*)currObj)->initRotateModel(Window::width, Window::height, pos);
+		}
+		else if (action == GLFW_RELEASE) {
+
+		}
+	}
+
+}
+
+void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
+	glm::vec2 curPos(xpos, ypos);
+	((PointCloud*)currObj)->rotateModel(Window::width, Window::height, curPos);
+}
+
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	/*

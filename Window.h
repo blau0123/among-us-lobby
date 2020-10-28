@@ -48,6 +48,8 @@ public:
 	// Callbacks
 	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+	static void onMouseButtonDown(GLFWwindow* window, int button, int action, int mods);
+	static void onMouseMove(GLFWwindow* window, double xpos, double ypos);
 };
 
 #endif

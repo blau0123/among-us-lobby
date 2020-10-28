@@ -17,6 +17,11 @@ private:
 	std::vector<glm::vec3> vertexNorms;
 	std::vector<glm::ivec3> indices;
 
+	glm::vec3 lastCursorPos;
+
+	// Determines if we are rotating the object or not --> 0 = ROTATE
+	int movement;
+
 	GLuint VAO, VBO, EBO;
 	GLfloat pointSize;
 
@@ -30,6 +35,10 @@ public:
 	glm::vec3 lerp(glm::vec3 start, glm::vec3 end, float t);
 	void updatePointSize(GLfloat size);
 	void updateModelSize(double yoffset);
+	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);
+	void rotateModel(int windowWidth, int windowHeight, glm::vec2 currCursorPos);
+	void endRotateModel();
+	glm::vec3 trackBallMapping(int windowWidth, int windowHeight, glm::vec2 cursorPos);
 	void spin(float deg);
 };
 
