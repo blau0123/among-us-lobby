@@ -209,8 +209,6 @@ void PointCloud::updateModelSize(double yoffset) {
 }
 
 void PointCloud::initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos) {
-	std::cout << windowWidth << " " << windowHeight << " " << cursorPos.x << "," << cursorPos.y << std::endl;
-
 	// Turn on user interactive rotations
 	movement = 0;
 
@@ -235,26 +233,19 @@ void PointCloud::rotateModel(int windowWidth, int windowHeight, glm::vec2 currCu
 			// Determine the direction that the object should be rotated in logical sphere
 			rotateDirection = currSpherePos - lastCursorPos;
 			float velocity = glm::length(rotateDirection);
-
+			
 			// Only rotate if there is a decent amount of movement
 			if (velocity > 0.0001f) {
-				// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
+				// Rotate about the axis that is perpendicular to the two points
 				glm::vec3 rotAxis = glm::cross(lastCursorPos, currSpherePos);
-				// rot_angle = velocity*;
+				rot_angle = velocity * 40;
 
-				// Get the current ModelView matrix and save it
-				GLfloat objectXform;
-				glGetFloatv(GL_MODELVIEW_MATRIX, &objectXform);
-				glLoadIdentity();
-				// glRotatef(rot_angle, rotAxis.x, rotAxis.y, rotAxis.z);
-				// Multiplies the current ModelView matrix by the matrix that we saved earlier
-				// glMultMatrixf(&objectXform)
-				// Force redraw
-
-				// Save the current point location for the next movement
-				lastCursorPos = currSpherePos;
+				// Calculate the rotation matrix
+				model = model * glm::rotate(glm::radians(rot_angle), rotAxis);
 			}
-			
+
+			// Save the current point location for the next movement
+			lastCursorPos = currSpherePos;
 			break;
 		}
 	}

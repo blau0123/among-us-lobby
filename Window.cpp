@@ -185,7 +185,8 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 			((PointCloud*)currObj)->initRotateModel(Window::width, Window::height, pos);
 		}
 		else if (action == GLFW_RELEASE) {
-
+			// When release the mouse click, stop rotating
+			((PointCloud*)currObj)->endRotateModel();
 		}
 	}
 
