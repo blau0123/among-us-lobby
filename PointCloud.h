@@ -22,7 +22,8 @@ private:
 	// Determines if we are rotating the object or not --> 0 = ROTATE
 	int movement;
 
-	GLuint VAO, VBO, EBO;
+	// VBO holds position (vertex) data, VBO2 holds vertex normal data
+	GLuint VAO, VBO, VBO2, EBO;
 	GLfloat pointSize;
 
 public:
@@ -33,6 +34,7 @@ public:
 	void update();
 
 	glm::vec3 lerp(glm::vec3 start, glm::vec3 end, float t);
+	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a);
 	void updatePointSize(GLfloat size);
 	void updateModelSize(double yoffset);
 	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);

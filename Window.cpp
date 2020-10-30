@@ -46,6 +46,7 @@ bool Window::initializeProgram() {
 	return true;
 }
 
+// Material property values: http://devernay.free.fr/cours/opengl/materials.html
 bool Window::initializeObjects()
 {
 	// Create a cube of size 5.
@@ -53,8 +54,28 @@ bool Window::initializeObjects()
 
 	// Create a point cloud consisting of cube vertices.
 	bunnyPoints = new PointCloud("obj/bunny.obj", 10);
+	// Set the material properties for the bunny (k_d, k_s, k_a)
+	bunnyPoints->setModelMaterialProperties(
+		// No diffuse reflection
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.07568, 0.61424, 0.07668),
+		glm::vec3(0.0215, 0.1745, 0.0215)
+	);
 	bearPoints = new PointCloud("obj/bear.obj", 10);
+	// Set the material properties for the bear (k_d, k_s, k_a)
+	bearPoints->setModelMaterialProperties(
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		// No specular component
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.24725, 0.1995, 0.0745)
+	);
 	sandalPoints = new PointCloud("obj/SandalF20.obj", 10);
+	// Set the material properties for the sandal (k_d, k_s, k_a)
+	bearPoints->setModelMaterialProperties(
+		glm::vec3(0.396, 0.74151, 0.69102),
+		glm::vec3(0.297254, 0.30829, 0.306678),
+		glm::vec3(0.1, 0.18725, 0.1745)
+	);
 
 	// Set the bear point cloud to be the first thing to show
 	currObj = bearPoints;

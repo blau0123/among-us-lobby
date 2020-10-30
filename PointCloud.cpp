@@ -118,6 +118,7 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	// Generate a Vertex Array (VAO) and Vertex Buffer Object (VBO)
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &VBO2);
 
 	// Bind VAO
 	glBindVertexArray(VAO);
@@ -128,7 +129,17 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 
 	// Enable Vertex Attribute 0 to pass point data through to the shader
 	glEnableVertexAttribArray(0);
+	// Location for the position layout variable in the vertex shader
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+
+	// Bind VBO2 to the bound VAO, and store the vertex norm data
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), vertexNorms.data(), GL_STATIC_DRAW);
+
+	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
+	glEnableVertexAttribArray(1);
+	// Location for the vertex norm layout variable in the vertex shader
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &EBO);
@@ -144,6 +155,7 @@ PointCloud::~PointCloud()
 {
 	// Delete the VBO, EBO and the VAO.
 	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &VBO2);
 	glDeleteBuffers(1, &EBO);
 	glDeleteVertexArrays(1, &VAO);
 }
@@ -158,6 +170,10 @@ void PointCloud::draw(const glm::mat4& view, const glm::mat4& projection, GLuint
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(glGetUniformLocation(shader, "color"), 1, glm::value_ptr(color));
+
+	glUniform3fv(glGetUniformLocation(shader, "k_diffuse"), 1, glm::value_ptr(k_diffuse));
+	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
+	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
 
 	// Bind the VAO
 	glBindVertexArray(VAO);
@@ -282,6 +298,13 @@ void PointCloud::updatePointSize(GLfloat size)
 		pointSize += size;
 		std::cout << "new point size: " << pointSize << endl;
 	}
+}
+
+void PointCloud::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a) {
+	// Set the uniform variable for k for diffuse, specular, ambient for this specific object
+	k_diffuse = k_d;
+	k_specular = k_s;
+	k_ambient = k_a;
 }
 
 void PointCloud::spin(float deg)
