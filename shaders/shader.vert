@@ -7,7 +7,7 @@
 // The vertex shader gets called once per vertex.
 
 layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 vertexNorms;
+layout (location = 1) in vec3 vertexNorm;
 
 // Uniform variables can be updated by fetching their location and passing values to that location
 uniform mat4 projection;
@@ -19,12 +19,16 @@ uniform mat4 model;
 // extra outputs as you need.
 out float sampleExtraOutput;
 // Output the vertex normals and vertices to input into the fragment shader
-// out vec3 fragNormal;
-// out vec3 fragVert;
+out vec3 fragNormal;
+out vec3 fragPos;
 
 void main()
 {
     // OpenGL maintains the D matrix so you only need to multiply by P, V (aka C inverse), and M
     gl_Position = projection * view * model * vec4(position, 1.0);
     sampleExtraOutput = 1.0f;
+
+    // Convert the positions and normals to world coordinates, then output them to the fragment shader
+    fragPos = vec3(model * vec4(position, 1.0f));
+    fragNormal = mat3(transpose(inverse(model))) * vertexNorm;
 }

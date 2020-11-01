@@ -34,7 +34,7 @@ public:
 	void update();
 
 	glm::vec3 lerp(glm::vec3 start, glm::vec3 end, float t);
-	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a);
+	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s);
 	void updatePointSize(GLfloat size);
 	void updateModelSize(double yoffset);
 	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);

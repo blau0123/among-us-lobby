@@ -27,6 +27,9 @@ glm::vec3 Window::lookAtPoint(0, 0, 0);		// The point we are looking at.
 glm::vec3 Window::upVector(0, 1, 0);		// The up direction of the camera.
 glm::mat4 Window::view = glm::lookAt(Window::eyePos, Window::lookAtPoint, Window::upVector);
 
+// Create the light source position
+glm::vec3 Window::lightPosition(0, 0, 20);
+
 // Shader Program ID
 GLuint Window::shaderProgram; 
 
@@ -54,33 +57,54 @@ bool Window::initializeObjects()
 
 	// Create a point cloud consisting of cube vertices.
 	bunnyPoints = new PointCloud("obj/bunny.obj", 10);
-	// Set the material properties for the bunny (k_d, k_s, k_a)
+	// Set the material properties for the bunny (k_d, k_s, k_a, shininess)
 	bunnyPoints->setModelMaterialProperties(
 		// No diffuse reflection
 		glm::vec3(0, 0, 0),
-		glm::vec3(0.07568, 0.61424, 0.07668),
-		glm::vec3(0.0215, 0.1745, 0.0215)
+		glm::vec3(0.633, 0.727811, 0.633),
+		glm::vec3(0.0215, 0.1745, 0.0215),
+		0.6f
 	);
 	bearPoints = new PointCloud("obj/bear.obj", 10);
-	// Set the material properties for the bear (k_d, k_s, k_a)
+	// Set the material properties for the bear (k_d, k_s, k_a, shininess)
 	bearPoints->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		// No specular component
 		glm::vec3(0, 0, 0),
-		glm::vec3(0.24725, 0.1995, 0.0745)
+		glm::vec3(0.24725, 0.1995, 0.0745),
+		0.4f
 	);
 	sandalPoints = new PointCloud("obj/SandalF20.obj", 10);
-	// Set the material properties for the sandal (k_d, k_s, k_a)
-	bearPoints->setModelMaterialProperties(
-		glm::vec3(0.396, 0.74151, 0.69102),
-		glm::vec3(0.297254, 0.30829, 0.306678),
-		glm::vec3(0.1, 0.18725, 0.1745)
+	// Set the material properties for the sandal (k_d, k_s, k_a, shininess)
+	sandalPoints->setModelMaterialProperties(
+		glm::vec3(0.61424, 0.04136, 0.04136),
+		glm::vec3(0.727811, 0.626959, 0.626959),
+		glm::vec3(0.1745, 0.01175, 0.01175),
+		0.1f
 	);
+
+	// Initialize light source properties
+	initializeLightSourceProperties();
 
 	// Set the bear point cloud to be the first thing to show
 	currObj = bearPoints;
 
 	return true;
+}
+
+void Window::initializeLightSourceProperties() {
+	// Actiavte the shader program 
+	glUseProgram(shaderProgram);
+	
+	glm::vec3 lightColor(1.0f, 0.5f, 0.31f);
+	// Get the shader variable locations and send the uniform light data to the shader 
+	glUniform3fv(glGetUniformLocation(shaderProgram, "lightPosition"), 1, glm::value_ptr(lightPosition));
+	glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(eyePos));
+	glUniform1f(glGetUniformLocation(shaderProgram, "lightLinear"), 0.09);
+	glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
+	std::cout << "Set the light property uniform variables" << std::endl;
+
+	glUseProgram(0);
 }
 
 void Window::cleanUp()

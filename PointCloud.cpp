@@ -174,6 +174,7 @@ void PointCloud::draw(const glm::mat4& view, const glm::mat4& projection, GLuint
 	glUniform3fv(glGetUniformLocation(shader, "k_diffuse"), 1, glm::value_ptr(k_diffuse));
 	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
+	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
 
 	// Bind the VAO
 	glBindVertexArray(VAO);
@@ -300,11 +301,12 @@ void PointCloud::updatePointSize(GLfloat size)
 	}
 }
 
-void PointCloud::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a) {
+void PointCloud::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s) {
 	// Set the uniform variable for k for diffuse, specular, ambient for this specific object
 	k_diffuse = k_d;
 	k_specular = k_s;
 	k_ambient = k_a;
+	shininess = s;
 }
 
 void PointCloud::spin(float deg)

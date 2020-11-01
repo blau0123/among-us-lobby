@@ -22,6 +22,7 @@ protected:
 	glm::vec3 k_diffuse;
 	glm::vec3 k_specular;
 	glm::vec3 k_ambient;
+	float shininess;
 
 public:
 	glm::mat4 getModel() { return model; }

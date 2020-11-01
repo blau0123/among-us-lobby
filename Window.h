@@ -16,6 +16,10 @@ public:
 	static int height;
 	static const char* windowTitle;
 
+	// Light Properties
+	static glm::vec3 lightPosition;
+	static glm::vec3 lightColor;
+
 	// Objects to Render
 	static Cube* cube;
 	static PointCloud * cubePoints;
@@ -36,6 +40,9 @@ public:
 	static bool initializeProgram();
 	static bool initializeObjects();
 	static void cleanUp();
+
+	// Set up light source
+	static void initializeLightSourceProperties();
 
 	// Window functions
 	static GLFWwindow* createWindow(int width, int height);
