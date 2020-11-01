@@ -109,6 +109,9 @@ PointCloud::PointCloud(std::string objFilename, GLfloat pointSize)
 	movement = -1;
 	lastCursorPos = glm::vec3(0.0f);
 
+	// Initialize render mode
+	renderMode = 0;
+
 	// Set the model matrix to an identity matrix. 
 	model = glm::mat4(1);
 
@@ -175,6 +178,9 @@ void PointCloud::draw(const glm::mat4& view, const glm::mat4& projection, GLuint
 	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
 	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
+
+	// Pass in which render mode we are in (normal, Phong)
+	glUniform1i(glGetUniformLocation(shader, "render_mode"), renderMode);
 
 	// Bind the VAO
 	glBindVertexArray(VAO);
@@ -307,6 +313,15 @@ void PointCloud::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::v
 	k_specular = k_s;
 	k_ambient = k_a;
 	shininess = s;
+}
+
+void PointCloud::changeRenderingMode() {
+	if (renderMode == 0) {
+		renderMode = 1;
+	}
+	else {
+		renderMode = 0;
+	}
 }
 
 void PointCloud::spin(float deg)

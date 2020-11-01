@@ -277,6 +277,10 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			// Decrease point size
 			((PointCloud*)currObj)->updatePointSize(-sizeIncrement);
 			break;
+		case GLFW_KEY_N:
+			// Switch rendering mode between normal coloring and Phong illumination model
+			((PointCloud*)currObj)->changeRenderingMode();
+			break;
 		default:
 			break;
 		}

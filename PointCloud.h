@@ -19,6 +19,9 @@ private:
 
 	glm::vec3 lastCursorPos;
 
+	// Determines which rendering mode (0 = normal coloring, 1 = Phong illumination)
+	int renderMode;
+
 	// Determines if we are rotating the object or not --> 0 = ROTATE
 	int movement;
 
@@ -37,6 +40,7 @@ public:
 	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s);
 	void updatePointSize(GLfloat size);
 	void updateModelSize(double yoffset);
+	void changeRenderingMode();
 	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);
 	void rotateModel(int windowWidth, int windowHeight, glm::vec2 currCursorPos);
 	void endRotateModel();
