@@ -12,6 +12,7 @@ PointCloud * Window::cubePoints;
 PointCloud* Window::bunnyPoints;
 PointCloud* Window::sandalPoints;
 PointCloud* Window::bearPoints;
+LightSource* Window::lightSphere;
 Object* currObj;
 
 // Camera Matrices 
@@ -27,13 +28,10 @@ glm::vec3 Window::lookAtPoint(0, 0, 0);		// The point we are looking at.
 glm::vec3 Window::upVector(0, 1, 0);		// The up direction of the camera.
 glm::mat4 Window::view = glm::lookAt(Window::eyePos, Window::lookAtPoint, Window::upVector);
 
-// Create the light source position
-glm::vec3 Window::lightPosition(0, 0, 20);
+int Window::rotateType = 1;
 
 // Shader Program ID
 GLuint Window::shaderProgram; 
-
-
 
 bool Window::initializeProgram() {
 	// Create a shader program with a vertex shader and a fragment shader.
@@ -61,9 +59,9 @@ bool Window::initializeObjects()
 	bunnyPoints->setModelMaterialProperties(
 		// No diffuse reflection
 		glm::vec3(0, 0, 0),
-		glm::vec3(0.633, 0.727811, 0.633),
-		glm::vec3(0.0215, 0.1745, 0.0215),
-		0.6f
+		glm::vec3(0.296648, 0.296648, 0.296648),
+		glm::vec3(0.0, 0.0, 0.8),
+		0.088
 	);
 	bearPoints = new PointCloud("obj/bear.obj", 10);
 	// Set the material properties for the bear (k_d, k_s, k_a, shininess)
@@ -71,7 +69,7 @@ bool Window::initializeObjects()
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		// No specular component
 		glm::vec3(0, 0, 0),
-		glm::vec3(0.24725, 0.1995, 0.0745),
+		glm::vec3(0.0, 0.7, 0.0),
 		0.4f
 	);
 	sandalPoints = new PointCloud("obj/SandalF20.obj", 10);
@@ -79,32 +77,26 @@ bool Window::initializeObjects()
 	sandalPoints->setModelMaterialProperties(
 		glm::vec3(0.61424, 0.04136, 0.04136),
 		glm::vec3(0.727811, 0.626959, 0.626959),
-		glm::vec3(0.1745, 0.01175, 0.01175),
+		glm::vec3(1.0f, 0.5f, 0.31f),
+		0.1f
+	);
+
+	lightSphere = new LightSource("obj/sphere.obj", 10);
+	lightSphere->setModelMaterialProperties(
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		// Color of the light
+		glm::vec3(1.0f, 0.5f, 0.31f),
 		0.1f
 	);
 
 	// Initialize light source properties
-	initializeLightSourceProperties();
+	lightSphere->initializeLightSourceProperties(shaderProgram, eyePos);
 
 	// Set the bear point cloud to be the first thing to show
 	currObj = bearPoints;
 
 	return true;
-}
-
-void Window::initializeLightSourceProperties() {
-	// Actiavte the shader program 
-	glUseProgram(shaderProgram);
-	
-	glm::vec3 lightColor(1.0f, 0.5f, 0.31f);
-	// Get the shader variable locations and send the uniform light data to the shader 
-	glUniform3fv(glGetUniformLocation(shaderProgram, "lightPosition"), 1, glm::value_ptr(lightPosition));
-	glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, glm::value_ptr(eyePos));
-	glUniform1f(glGetUniformLocation(shaderProgram, "lightLinear"), 0.09);
-	glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
-	std::cout << "Set the light property uniform variables" << std::endl;
-
-	glUseProgram(0);
 }
 
 void Window::cleanUp()
@@ -115,6 +107,7 @@ void Window::cleanUp()
 	delete bearPoints;
 	delete sandalPoints;
 	delete cubePoints;
+	delete lightSphere;
 
 	// Delete the shader program.
 	glDeleteProgram(shaderProgram);
@@ -207,6 +200,7 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Render the objects
 	currObj->draw(view, projection, shaderProgram);
+	lightSphere->draw(view, projection, shaderProgram);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -227,11 +221,19 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			glm::vec2 pos(xpos, ypos);
-			((PointCloud*)currObj)->initRotateModel(Window::width, Window::height, pos);
+
+			// If rotateType = 1, rotate model; if 2, rotate light source; if 3, rotate both
+			if (rotateType == 1 || rotateType == 3)
+				((PointCloud*)currObj)->initRotateModel(Window::width, Window::height, pos);
+			if (rotateType == 2 || rotateType == 3)
+				lightSphere->initRotateModel(Window::width, Window::height, pos);
 		}
 		else if (action == GLFW_RELEASE) {
 			// When release the mouse click, stop rotating
-			((PointCloud*)currObj)->endRotateModel();
+			if (rotateType == 1 || rotateType == 3)
+				((PointCloud*)currObj)->endRotateModel();
+			if (rotateType == 2 || rotateType == 3)
+				lightSphere->endRotateModel();
 		}
 	}
 
@@ -239,7 +241,10 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 
 void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
 	glm::vec2 curPos(xpos, ypos);
-	((PointCloud*)currObj)->rotateModel(Window::width, Window::height, curPos);
+	if (rotateType == 1 || rotateType == 3)
+		((PointCloud*)currObj)->rotateModel(Window::width, Window::height, curPos);
+	if (rotateType == 2 || rotateType == 3)
+		lightSphere->rotateModel(Window::width, Window::height, curPos);
 }
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -260,14 +265,29 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			break;
 
 		// switch between the cube and the cube pointCloud
-		case GLFW_KEY_1:
+		case GLFW_KEY_F1:
 			currObj = bearPoints;
 			break;
-		case GLFW_KEY_2:
+		case GLFW_KEY_F2:
 			currObj = bunnyPoints;
 			break;
-		case GLFW_KEY_3:
+		case GLFW_KEY_F3:
 			currObj = sandalPoints;
+			break;
+		// Rotate model when mouse button down
+		case GLFW_KEY_1:
+			rotateType = 1;
+			std::cout << "Switched to rotate type " << rotateType << std::endl;
+			break;
+		// Rotate light source when mouse button down
+		case GLFW_KEY_2:
+			rotateType = 2;
+			std::cout << "Switched to rotate type " << rotateType << std::endl;
+			break;
+		// Rotate model and light source together when mouse button down
+		case GLFW_KEY_3:
+			rotateType = 3;
+			std::cout << "Switched to rotate type " << rotateType << std::endl;
 			break;
 		case GLFW_KEY_L:
 			// Increase point size

@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "Cube.h"
 #include "PointCloud.h"
+#include "LightSource.h"
 
 class Window
 {
@@ -16,9 +17,8 @@ public:
 	static int height;
 	static const char* windowTitle;
 
-	// Light Properties
-	static glm::vec3 lightPosition;
-	static glm::vec3 lightColor;
+	// 1 --> rotate model, 2 --> rotate light source, 3 --> rotate both by same amount
+	static int rotateType;
 
 	// Objects to Render
 	static Cube* cube;
@@ -26,6 +26,7 @@ public:
 	static PointCloud* bunnyPoints;
 	static PointCloud* sandalPoints;
 	static PointCloud* bearPoints;
+	static LightSource* lightSphere;
 
 	// Camera Matrices
 	static glm::mat4 projection;
@@ -40,9 +41,6 @@ public:
 	static bool initializeProgram();
 	static bool initializeObjects();
 	static void cleanUp();
-
-	// Set up light source
-	static void initializeLightSourceProperties();
 
 	// Window functions
 	static GLFWwindow* createWindow(int width, int height);
