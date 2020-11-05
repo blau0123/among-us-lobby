@@ -42,6 +42,7 @@ public:
 
 	glm::vec3 lerp(glm::vec3 start, glm::vec3 end, float t);
 	void initializeLightSourceProperties(GLuint shader, glm::vec3 viewPos);
+	void updateLightPositionToCenter(double yoffset);
 	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s);
 	void updatePointSize(GLfloat size);
 	void updateModelSize(double yoffset);

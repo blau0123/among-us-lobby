@@ -211,7 +211,11 @@ void Window::displayCallback(GLFWwindow* window)
 
 void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 	// If y < 0, then scroll down & if y > 0, then scroll up
-	((PointCloud*)currObj)->updateModelSize(yoffset);
+	// If rotateType = 1, scale model; if 2, change distance of light from center; if 3, do both 1 and 2
+	if (rotateType == 1 || rotateType == 3)
+		((PointCloud*)currObj)->updateModelSize(yoffset);
+	if (rotateType == 2 || rotateType == 3)
+		lightSphere->updateLightPositionToCenter(yoffset);
 }
 
 void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int mods) {
@@ -236,7 +240,6 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 				lightSphere->endRotateModel();
 		}
 	}
-
 }
 
 void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {

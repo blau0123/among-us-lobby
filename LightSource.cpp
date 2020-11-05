@@ -149,10 +149,8 @@ void LightSource::initializeLightSourceProperties(GLuint shader, glm::vec3 viewP
 	glUseProgram(shader);
 
 	// Get the shader variable locations and send the uniform light data to the shader 
-	glUniform3fv(glGetUniformLocation(shader, "lightPosition"), 1, glm::value_ptr(lightPosition));
 	glUniform3fv(glGetUniformLocation(shader, "viewPos"), 1, glm::value_ptr(viewPos));
 	glUniform1f(glGetUniformLocation(shader, "lightLinear"), 0.09);
-	glUniform3fv(glGetUniformLocation(shader, "lightColor"), 1, glm::value_ptr(lightColor));
 	std::cout << "Set the light property uniform variables" << std::endl;
 
 	glUseProgram(0);
@@ -173,6 +171,10 @@ void LightSource::draw(const glm::mat4& view, const glm::mat4& projection, GLuin
 	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
 	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
+
+	// Send uniform light source values
+	glUniform3fv(glGetUniformLocation(shader, "lightPosition"), 1, glm::value_ptr(lightPosition));
+	glUniform3fv(glGetUniformLocation(shader, "lightColor"), 1, glm::value_ptr(lightColor));
 
 	// Pass in which render mode we are in (normal, Phong)
 	glUniform1i(glGetUniformLocation(shader, "render_mode"), renderMode);
@@ -260,6 +262,10 @@ void LightSource::rotateModel(int windowWidth, int windowHeight, glm::vec2 currC
 
 				// Calculate the rotation matrix
 				model = glm::rotate(glm::radians(rot_angle), rotAxis) * model;
+
+				// Rotate the actual light source position vector
+				glm::vec4 lightPosWorld = model * glm::vec4(lightPosition, 1.0);
+				lightPosition = glm::vec3(glm::rotate(glm::radians(rot_angle), rotAxis) * lightPosWorld);
 			}
 
 			// Save the current point location for the next movement
@@ -286,6 +292,26 @@ glm::vec3 LightSource::trackBallMapping(int windowWidth, int windowHeight, glm::
 	v.z = sqrtf(1.001f - d * d);
 	v = glm::normalize(v);
 	return v;
+}
+
+void LightSource::updateLightPositionToCenter(double yoffset) {
+	// Transformations: translate to (0,0,0) -> scale wrt (0,0,0) -> inverse translate back
+	glm::mat4 translateToOrigin = glm::translate(glm::vec3(0, 0, 0));
+	glm::mat4 invTranslateToOrigin = glm::inverse(translateToOrigin);
+	glm::mat4 scaleMatrix;
+	if (yoffset > 0) {
+		// Scale the model up by multiplying a scale matrix
+		scaleMatrix = glm::scale(glm::vec3(1.1f, 1.1f, 1.1f));
+	}
+	else if (yoffset < 0) {
+		// Scale the model up by multiplying a scale matrix
+		scaleMatrix = glm::scale(glm::vec3(0.9f, 0.9f, 0.9f));
+	}
+
+	// Apply transformations onto the model and light source position
+	model = invTranslateToOrigin * scaleMatrix * translateToOrigin * model;
+	glm::vec4 lightPosWorld = model * glm::vec4(lightPosition, 1.0);
+	lightPosition = invTranslateToOrigin * scaleMatrix * translateToOrigin * lightPosWorld;
 }
 
 void LightSource::updatePointSize(GLfloat size)
