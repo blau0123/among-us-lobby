@@ -311,19 +311,12 @@ void LightSource::updateLightPositionToCenter(double yoffset) {
 		// Scale the model up by multiplying a scale matrix
 		scaleMatrix = glm::scale(glm::vec3(0.9f, 0.9f, 0.9f));
 	}
-	// make 3rd clm of model = lightPosWorld
-	// Apply transformations onto the model and light source position
-	// model = invTranslateToOrigin * scaleMatrix * translateToOrigin * model;
+
 	// Convert lightPos to world coordinates and multiply by the scale matrix to move the light position farther/closer to origin
-	std::cout << "Light pos before: " << lightPosition.x << "," << lightPosition.y << "," << lightPosition.z << std::endl;
-	// 	glm::vec4 lightPosWorld = model * glm::vec4(lightPosition, 1.0);
-	glm::vec4 newPos = scaleMatrix * glm::vec4(lightPosition, 1.0);
-	// Make 3rd column of model = lightPosWorld in order to translate it to where the light position is
-	// model[3] = lightPosWorld;
-	// model = glm::translate(glm::vec3(newPos)) * model;
-	lightPosition = newPos;
-	std::cout << "Light pos after: " << lightPosition.x << "," << lightPosition.y << "," << lightPosition.z << std::endl;
-	// lightPosition = invTranslateToOrigin * scaleMatrix * translateToOrigin * lightPosWorld;
+	glm::vec4 lightPosWorld = model * glm::vec4(lightPosition, 1.0f);
+	lightPosition = scaleMatrix * lightPosWorld;
+	// Scale the model to get closer and farther from the origin
+	model = scaleMatrix * model;
 }
 
 void LightSource::updatePointSize(GLfloat size)
