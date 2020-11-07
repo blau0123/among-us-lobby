@@ -16,6 +16,7 @@ uniform vec3 color;
 uniform vec3 k_diffuse;
 uniform vec3 k_specular;
 uniform vec3 k_ambient;
+uniform int isLightSource;
 uniform float shininess;
 
 uniform int render_mode;
@@ -58,7 +59,11 @@ void main()
         vec3 specular = lightColor * spec * k_specular;
 
         // Multiply by the attenuation
-        ambient *= attenuation;
+        // If a light source, don't multiply ambient by attentuation, so that the light source
+        // color won't change as you move it
+        if (isLightSource == 0) {
+            ambient *= attenuation;
+        }
         diffuse *= attenuation;
         specular *= attenuation;
 

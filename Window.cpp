@@ -200,7 +200,9 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Render the objects
 	currObj->draw(view, projection, shaderProgram);
-	lightSphere->draw(view, projection, shaderProgram);
+	// If the current render mode is 1, show the light source and if not (normal shading), don't show
+	if (((PointCloud*)currObj)->getRenderMode() == 1)
+		lightSphere->draw(view, projection, shaderProgram);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

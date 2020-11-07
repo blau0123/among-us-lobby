@@ -171,6 +171,7 @@ void LightSource::draw(const glm::mat4& view, const glm::mat4& projection, GLuin
 	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
 	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
+	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 1);
 
 	// Send uniform light source values
 	glUniform3fv(glGetUniformLocation(shader, "lightPosition"), 1, glm::value_ptr(lightPosition));
@@ -263,7 +264,9 @@ void LightSource::rotateModel(int windowWidth, int windowHeight, glm::vec2 currC
 				// Calculate the rotation matrix
 				model = glm::rotate(glm::radians(rot_angle), rotAxis) * model;
 
-				// Rotate the actual light source position vector
+				// Rotate the actual light source position vector by converting the vector into world
+				// coordinates by multiplying it by model, then applying the same rotation matrix
+				// to the world coord light pos as to the actual model
 				glm::vec4 lightPosWorld = model * glm::vec4(lightPosition, 1.0);
 				lightPosition = glm::vec3(glm::rotate(glm::radians(rot_angle), rotAxis) * lightPosWorld);
 			}
@@ -299,6 +302,7 @@ void LightSource::updateLightPositionToCenter(double yoffset) {
 	glm::mat4 translateToOrigin = glm::translate(glm::vec3(0, 0, 0));
 	glm::mat4 invTranslateToOrigin = glm::inverse(translateToOrigin);
 	glm::mat4 scaleMatrix;
+
 	if (yoffset > 0) {
 		// Scale the model up by multiplying a scale matrix
 		scaleMatrix = glm::scale(glm::vec3(1.1f, 1.1f, 1.1f));
@@ -307,11 +311,19 @@ void LightSource::updateLightPositionToCenter(double yoffset) {
 		// Scale the model up by multiplying a scale matrix
 		scaleMatrix = glm::scale(glm::vec3(0.9f, 0.9f, 0.9f));
 	}
-
+	// make 3rd clm of model = lightPosWorld
 	// Apply transformations onto the model and light source position
-	model = invTranslateToOrigin * scaleMatrix * translateToOrigin * model;
-	glm::vec4 lightPosWorld = model * glm::vec4(lightPosition, 1.0);
-	lightPosition = invTranslateToOrigin * scaleMatrix * translateToOrigin * lightPosWorld;
+	// model = invTranslateToOrigin * scaleMatrix * translateToOrigin * model;
+	// Convert lightPos to world coordinates and multiply by the scale matrix to move the light position farther/closer to origin
+	std::cout << "Light pos before: " << lightPosition.x << "," << lightPosition.y << "," << lightPosition.z << std::endl;
+	// 	glm::vec4 lightPosWorld = model * glm::vec4(lightPosition, 1.0);
+	glm::vec4 newPos = scaleMatrix * glm::vec4(lightPosition, 1.0);
+	// Make 3rd column of model = lightPosWorld in order to translate it to where the light position is
+	// model[3] = lightPosWorld;
+	// model = glm::translate(glm::vec3(newPos)) * model;
+	lightPosition = newPos;
+	std::cout << "Light pos after: " << lightPosition.x << "," << lightPosition.y << "," << lightPosition.z << std::endl;
+	// lightPosition = invTranslateToOrigin * scaleMatrix * translateToOrigin * lightPosWorld;
 }
 
 void LightSource::updatePointSize(GLfloat size)
@@ -332,7 +344,7 @@ void LightSource::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::
 	// Set the uniform variable for k for diffuse, specular, ambient for this specific object
 	k_diffuse = k_d;
 	k_specular = k_s;
-	k_ambient = lightColor;
+	k_ambient = glm::vec3(1.0f, 1.0f, 1.0f);//lightColor;
 	shininess = s;
 }
 

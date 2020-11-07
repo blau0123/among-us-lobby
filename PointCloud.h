@@ -41,6 +41,7 @@ public:
 	void updatePointSize(GLfloat size);
 	void updateModelSize(double yoffset);
 	void changeRenderingMode();
+	int getRenderMode();
 	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);
 	void rotateModel(int windowWidth, int windowHeight, glm::vec2 currCursorPos);
 	void endRotateModel();
