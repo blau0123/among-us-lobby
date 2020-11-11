@@ -1,5 +1,12 @@
 #include "Cube.h"
 
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 Cube::Cube(float size) 
 {
 	// Model matrix. Since the original size of the cube is 2, in order to
@@ -57,6 +64,19 @@ Cube::Cube(float size)
 		glm::ivec3(6, 2, 1),
 	}; 
 
+	// Load cubemap
+	std::vector<std::string> faces
+	{
+		"skybox_textures/Skybox_Water222_back.jpg",
+		"skybox_textures/Skybox_Water222_base.jpg",
+		"skybox_textures/Skybox_Water222_front.jpg",
+		"skybox_textures/Skybox_Water222_left.jpg",
+		"skybox_textures/Skybox_Water222_right.jpg",
+		"skybox_textures/Skybox_Water222_top.jpg"
+	};
+	cubemapTextureID = loadCubemap(faces);
+	std::cout << "Loaded cube map with texture id: " << cubemapTextureID << std::endl;
+
 	// Generate a vertex array (VAO) and vertex buffer object (VBO).
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -87,6 +107,49 @@ Cube::~Cube()
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
 	glDeleteVertexArrays(1, &VAO);
+}
+
+/*
+Method for loading the 6 faces of the cubemap to render a skybox using this Cube class as the cubemap
+*/
+unsigned int Cube::loadCubemap(std::vector<std::string> faces) {
+	// Bind the given texture id (will populate id)
+	unsigned int textureID;
+	// Returns unique texture name into textureID
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	// Note: nrChannels = number of color channels
+	int width, height, nrChannels;
+	// Loop through each of the 6 faces (paths to the face texture image), load the image,
+	// then call glTextImage2D for each face
+	for (unsigned int i = 0; i < faces.size(); i++) {
+		// Note: data[0] = first px's R, data[1] = first px's G, data[2] = first px's B, data[3] = 2nd px's R, etc.
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		if (data) {
+			// Loads image into OpenGL texture in GPU memory
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+		}
+		else {
+			std::string fail_reason = "";
+			if (stbi_failure_reason())
+				fail_reason = stbi_failure_reason();
+			std::cout << "Cubemap tex failed to load at path: " << faces[i] << " due to reason: " << fail_reason << std::endl;
+			stbi_image_free(data);
+		}
+	}
+
+	// Cubemap = a texture, so we need to specify its wrapping and filtering methods
+	// Use billinear interpolation
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// Use clamp to edge to hide skybox edges
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
 }
 
 void Cube::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader)

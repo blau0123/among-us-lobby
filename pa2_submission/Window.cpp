@@ -50,7 +50,7 @@ bool Window::initializeProgram() {
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
 bool Window::initializeObjects()
 {
-	// Create cubemap as our skybox
+	// Create a cube of size 5.
 	cube = new Cube(5.0f);
 
 	// Create a point cloud consisting of cube vertices.
