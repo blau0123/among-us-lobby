@@ -165,6 +165,7 @@ void Cube::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shade
 	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniform1i(glGetUniformLocation(shader, "skybox"), 0);
 	glUniform3fv(glGetUniformLocation(shader, "color"), 1, glm::value_ptr(color));
 
 	// Bind the VAO

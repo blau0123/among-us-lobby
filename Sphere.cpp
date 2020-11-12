@@ -118,7 +118,11 @@ void Sphere::init(std::string objFilename) {
 	std::cout << "Finished initing sphere" << std::endl;
 }
 
-void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader)
+void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
+
+}
+
+void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, GLuint shader)
 {
 	// Actiavte the shader program 
 	glUseProgram(shader);
@@ -127,12 +131,17 @@ void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, GLuint sha
 	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	// Set the camera position to be the eyePos vector
+	glUniform3fv(glGetUniformLocation(shader, "cameraPos"), 1, glm::value_ptr(cameraPos));
+	// Send uniform skybox data to shader for reflections
+	glUniform1i(glGetUniformLocation(shader, "skybox"), 0);
 	glUniform3fv(glGetUniformLocation(shader, "color"), 1, glm::value_ptr(color));
 
 	// Bind the VAO
 	glBindVertexArray(m_vao);
 
 	// Draw the points using triangles, indexed with the EBO
+	// Somehow needs to bind the texture cube map to the id of the cubemap from Cube.cpp
 	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
 
 	// Unbind the VAO and shader program

@@ -39,6 +39,7 @@ public:
 	// Shader Program ID
 	static GLuint shaderProgram;
 	static GLuint skyBoxShaderProgram;
+	static GLuint sphereShaderProgram;
 
 	// Constructors and Destructors
 	static bool initializeProgram();

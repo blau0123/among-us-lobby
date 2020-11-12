@@ -34,11 +34,13 @@ int Window::rotateType = 1;
 // Shader Program ID
 GLuint Window::shaderProgram; 
 GLuint Window::skyBoxShaderProgram;
+GLuint Window::sphereShaderProgram;
 
 bool Window::initializeProgram() {
 	// Create a shader program with a vertex shader and a fragment shader.
 	shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 	skyBoxShaderProgram = LoadShaders("shaders/skyBoxShader.vert", "shaders/skyBoxShader.frag");
+	sphereShaderProgram = LoadShaders("shaders/sphereShader.vert", "shaders/sphereShader.frag");
 
 	// Check the shader program.
 	if (!shaderProgram)
@@ -118,6 +120,8 @@ void Window::cleanUp()
 
 	// Delete the shader program.
 	glDeleteProgram(shaderProgram);
+	glDeleteProgram(skyBoxShaderProgram);
+	glDeleteProgram(sphereShaderProgram);
 }
 
 GLFWwindow* Window::createWindow(int width, int height)
@@ -205,7 +209,7 @@ void Window::displayCallback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	sphere->draw(view, projection, shaderProgram);
+	sphere->draw(view, projection, eyePos, sphereShaderProgram);
 	// Always render skybox last
 	cube->draw(view, projection, skyBoxShaderProgram);
 
