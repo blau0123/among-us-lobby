@@ -11,7 +11,8 @@ Cube::Cube(float size)
 {
 	// Model matrix. Since the original size of the cube is 2, in order to
 	// have a cube of some size, we need to scale the cube by size / 2.
-	model = glm::scale(glm::vec3(size / 2.f)); 
+	// model = glm::scale(glm::vec3(size / 2.f)); 
+	model = glm::mat4(1);
 
 	// The color of the cube. Try setting it to something else!
 	color = glm::vec3(1.0f, 0.95f, 0.1f); 
@@ -30,14 +31,14 @@ Cube::Cube(float size)
 	// The 8 vertices of a cube.
 	std::vector<glm::vec3> vertices
 	{
-		glm::vec3(-1, 1, 1),
-		glm::vec3(-1, -1, 1),
-		glm::vec3(1, -1, 1),
-		glm::vec3(1, 1, 1),
-		glm::vec3(-1, 1, -1),
-		glm::vec3(-1, -1, -1),
-		glm::vec3(1, -1, -1),
-		glm::vec3(1, 1, -1)
+		glm::vec3(-500, 500, 500),
+		glm::vec3(-500, -500, 500),
+		glm::vec3(500, -500, 500),
+		glm::vec3(500, 500, 500),
+		glm::vec3(-500, 500, -500),
+		glm::vec3(-500, -500, -500),
+		glm::vec3(500, -500, -500),
+		glm::vec3(500, 500, -500)
 	}; 
 
 	// Each ivec3(v1, v2, v3) define a triangle consists of vertices v1, v2 
@@ -64,15 +65,15 @@ Cube::Cube(float size)
 		glm::ivec3(6, 2, 1),
 	}; 
 
-	// Load cubemap
+	// Load cubemap with the order: right -> left -> top -> botom -> front -> back
 	std::vector<std::string> faces
 	{
-		"skybox_textures/Skybox_Water222_back.jpg",
+		"skybox_textures/Skybox_Water222_right.jpg",
+		"skybox_textures/Skybox_Water222_left.jpg",
+		"skybox_textures/Skybox_Water222_top.jpg",
 		"skybox_textures/Skybox_Water222_base.jpg",
 		"skybox_textures/Skybox_Water222_front.jpg",
-		"skybox_textures/Skybox_Water222_left.jpg",
-		"skybox_textures/Skybox_Water222_right.jpg",
-		"skybox_textures/Skybox_Water222_top.jpg"
+		"skybox_textures/Skybox_Water222_back.jpg"
 	};
 	cubemapTextureID = loadCubemap(faces);
 	std::cout << "Loaded cube map with texture id: " << cubemapTextureID << std::endl;
@@ -141,6 +142,7 @@ unsigned int Cube::loadCubemap(std::vector<std::string> faces) {
 	}
 
 	// Cubemap = a texture, so we need to specify its wrapping and filtering methods
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	// Use billinear interpolation
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -154,6 +156,8 @@ unsigned int Cube::loadCubemap(std::vector<std::string> faces) {
 
 void Cube::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader)
 {
+	// Disable depth writing so that skybox always drawn at background of all other objects
+	glDepthMask(GL_FALSE);
 	// Actiavte the shader program 
 	glUseProgram(shader);
 
@@ -167,7 +171,14 @@ void Cube::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shade
 	glBindVertexArray(VAO);
 
 	// Draw the points using triangles, indexed with the EBO
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureID);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	// 36 because will draw 36 elements, since it is a fixed cube
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+	glDepthMask(GL_TRUE);
+	glCullFace(GL_BACK);
 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);

@@ -105,6 +105,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PointCloud.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +115,7 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="PointCloud.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="Sphere.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

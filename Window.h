@@ -7,6 +7,7 @@
 #include "Cube.h"
 #include "PointCloud.h"
 #include "LightSource.h"
+#include "Sphere.h"
 
 class Window
 {
@@ -22,6 +23,7 @@ public:
 
 	// Objects to Render
 	static Cube* cube;
+	static Sphere* sphere;
 	static PointCloud * cubePoints;
 	static PointCloud* bunnyPoints;
 	static PointCloud* sandalPoints;
@@ -36,6 +38,7 @@ public:
 
 	// Shader Program ID
 	static GLuint shaderProgram;
+	static GLuint skyBoxShaderProgram;
 
 	// Constructors and Destructors
 	static bool initializeProgram();

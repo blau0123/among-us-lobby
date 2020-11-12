@@ -8,6 +8,7 @@ const char* Window::windowTitle = "GLFW Starter Project";
 
 // Objects to Render
 Cube * Window::cube;
+Sphere* Window::sphere;
 PointCloud * Window::cubePoints;
 PointCloud* Window::bunnyPoints;
 PointCloud* Window::sandalPoints;
@@ -32,10 +33,12 @@ int Window::rotateType = 1;
 
 // Shader Program ID
 GLuint Window::shaderProgram; 
+GLuint Window::skyBoxShaderProgram;
 
 bool Window::initializeProgram() {
 	// Create a shader program with a vertex shader and a fragment shader.
 	shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
+	skyBoxShaderProgram = LoadShaders("shaders/skyBoxShader.vert", "shaders/skyBoxShader.frag");
 
 	// Check the shader program.
 	if (!shaderProgram)
@@ -52,6 +55,10 @@ bool Window::initializeObjects()
 {
 	// Create cubemap as our skybox
 	cube = new Cube(5.0f);
+
+	// Create tesselated sphere
+	sphere = new Sphere();
+	sphere->init("obj/trisphere.obj");
 
 	// Create a point cloud consisting of cube vertices.
 	bunnyPoints = new PointCloud("obj/bunny.obj", 10);
@@ -198,11 +205,16 @@ void Window::displayCallback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	// Render the objects
+	sphere->draw(view, projection, shaderProgram);
+	// Always render skybox last
+	cube->draw(view, projection, skyBoxShaderProgram);
+
+	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);
 	// If the current render mode is 1, show the light source and if not (normal shading), don't show
 	if (((PointCloud*)currObj)->getRenderMode() == 1)
 		lightSphere->draw(view, projection, shaderProgram);
+	*/
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
