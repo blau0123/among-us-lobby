@@ -14,6 +14,7 @@ private:
 	bool isInited;
 	GLuint m_vao, m_vboVertex, m_vboNormals, m_eboIndex;
 	int lats, longs;
+	int numEltsToDraw;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::ivec3> indices;
 	std::vector<glm::vec3> vertexNorms;
@@ -23,7 +24,7 @@ public:
 	~Sphere();
 
 	void draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, GLuint shader);
-	void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader);
+	void draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader);
 	void init(std::string objFilename);
 	void update();
 };

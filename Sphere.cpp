@@ -28,57 +28,51 @@ Sphere::~Sphere()
 }
 
 void Sphere::init(std::string objFilename) {
-	std::ifstream objFile(objFilename);
-	// Check whether the file can be opened before reading
-	if (objFile.is_open()) {
-		// Get one line at a time
-		std::string line;
-		while (std::getline(objFile, line)) {
-			// Turn the line into a string stream for processing
-			std::stringstream ss;
-			ss << line;
+	int i, j;
+	std::vector<GLfloat> vertices1;
+	std::vector<GLuint> indices1;
+	std::vector<GLfloat> norms1;
+	int indicator = 0;
+	for (i = 0; i <= lats; i++) {
+		double lat0 = glm::pi<double>() * (-0.5 + (double)(i - 1.0) / lats);
+		double z0 = sin(lat0);
+		double zr0 = cos(lat0);
+		
+		double lat1 = glm::pi<double>() * (-0.5 + (double)i / lats);
+		double z1 = sin(lat1);
+		double zr1 = cos(lat1);
 
-			// Read the first word of the line
-			std::string label;
-			ss >> label;
+		for (j = 0; j <= longs; j++) {
+			double lng = 2 * glm::pi<double>() * (double)(j - 1.0) / longs;
+			double x = cos(lng);
+			double y = sin(lng);
 
-			// If the line is about vertex (start with a v), then read the content of the line
-			if (label == "v") {
-				// Read the float numbers (the next three words) and use them as the coordinates for the points
-				glm::vec3 point;
-				ss >> point.x >> point.y >> point.z;
-				// Process the point (save it)
-				vertices.push_back(point);
-			}
-			else if (label == "vn") {
-				// Like the vertex, read the float numbers (next three words) and use them as the vertex norm coordinates
-				glm::vec3 vNorm;
-				ss >> vNorm.x >> vNorm.y >> vNorm.z;
-				vertexNorms.push_back(vNorm);
-			}
-			else if (label == "f") {
-				glm::ivec3 faceIndices;
-				// Get the three vertex-vertex normal index pairs (the x, y, z)
-				std::string pairsX, pairsY, pairsZ;
-				ss >> pairsX >> pairsY >> pairsZ;
-				// Subtract one because indices start at 1, so will be one off of the real vertex indices
-				faceIndices.x = std::stoi(pairsX.substr(0, pairsX.find("//"))) - 1;
-				faceIndices.y = std::stoi(pairsY.substr(0, pairsY.find("//"))) - 1;
-				faceIndices.z = std::stoi(pairsZ.substr(0, pairsZ.find("//"))) - 1;
-				indices.push_back(faceIndices);
-			}
+			vertices1.push_back(x * zr0);
+			vertices1.push_back(y * zr0);
+			vertices1.push_back(z0);
+			//vertexNorms.push_back(glm::normalize(glm::vec3(x * zr0, y * zr0, z0)));
+			indices1.push_back(indicator);
+			indicator++;
+
+			vertices1.push_back(x * zr1);
+			vertices1.push_back(y * zr1);
+			vertices1.push_back(z1);
+			// get 4 quad points: if start long = 0, lat = 0, get right point by long + 1, lat + long to get bottom left, lat + long + 1 to get bottom right
+			// get positions of each point, then get difference vectors between 0,0; 0, long+1; 0, 1
+			// cross product of the difference vectors to get perpendicular vector
+			//vertexNorms.push_back(glm::normalize(glm::vec3(x * zr1, y * zr1, z1)));
+			indices1.push_back(indicator);
+			indicator++;
 		}
-	}
-	else {
-		std::cerr << "Can't open the file " << objFilename << std::endl;
+
+		indices1.push_back(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 	}
 
-	objFile.close();
 
 	// Initialize model view matrix
 	model = glm::mat4(1);
 	// Scale the sphere so it's bigger on the screen
-	model = glm::scale(glm::vec3(2, 2, 2)) * model;
+	model = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f)) * model;
 
 	// Generate a Vertex Array (VAO) and Vertex Buffer Object (VBO)
 	glGenVertexArrays(1, &m_vao);
@@ -90,12 +84,14 @@ void Sphere::init(std::string objFilename) {
 
 	// Bind VBO to the bound VAO, and store the point data
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboVertex);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices1.size(), &vertices[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 0 to pass point data through to the shader
 	glEnableVertexAttribArray(0);
 	// Location for the position layout variable in the vertex shader
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	// Bind VBO2 to the bound VAO, and store the vertex norm data
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
@@ -109,13 +105,15 @@ void Sphere::init(std::string objFilename) {
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &m_eboIndex);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboIndex);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLuint) * indices1.size(), &indices1[0], GL_STATIC_DRAW);
 
 	// Unbind the VBO/VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	std::cout << "Finished initing sphere" << std::endl;
+	numEltsToDraw = indices1.size();
+	std::cout << "Finished initing sphere with " << numEltsToDraw << " number of elements" << std::endl;
 }
 
 void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
@@ -140,9 +138,14 @@ void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm:
 	// Bind the VAO
 	glBindVertexArray(m_vao);
 
+	glEnable(GL_PRIMITIVE_RESTART);
+	glPrimitiveRestartIndex(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboIndex);
+	glDrawElements(GL_QUAD_STRIP, numEltsToDraw, GL_UNSIGNED_INT, 0);
 	// Draw the points using triangles, indexed with the EBO
 	// Somehow needs to bind the texture cube map to the id of the cubemap from Cube.cpp
-	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
+	// glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
+	// glDrawElements(GL_TRIANGLES, numEltsToDraw, GL_UNSIGNED_INT, 0);
 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);

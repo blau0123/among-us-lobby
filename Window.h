@@ -9,6 +9,9 @@
 #include "LightSource.h"
 #include "Sphere.h"
 
+#include "Transform.h"
+#include "Geometry.h"
+
 class Window
 {
 public:
@@ -30,6 +33,9 @@ public:
 	static PointCloud* bearPoints;
 	static LightSource* lightSphere;
 
+	// Scene Graph nodes
+	static Transform* World;
+
 	// Camera Matrices
 	static glm::mat4 projection;
 	static glm::mat4 scale;
@@ -44,6 +50,7 @@ public:
 	// Constructors and Destructors
 	static bool initializeProgram();
 	static bool initializeObjects();
+	static bool initializeSceneGraph();
 	static void cleanUp();
 
 	// Window functions

@@ -52,6 +52,11 @@ bool Window::initializeProgram() {
 	return true;
 }
 
+bool Window::initializeSceneGraph() {
+	// Set up scene graph and connections
+	World = new Transform();
+}
+
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
 bool Window::initializeObjects()
 {

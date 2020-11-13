@@ -78,6 +78,9 @@ Cube::Cube(float size)
 	cubemapTextureID = loadCubemap(faces);
 	std::cout << "Loaded cube map with texture id: " << cubemapTextureID << std::endl;
 
+	// Initialize model view matrix
+	model = glm::mat4(1);
+
 	// Generate a vertex array (VAO) and vertex buffer object (VBO).
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -189,7 +192,7 @@ void Cube::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shade
 void Cube::update()
 {
 	// Spin the cube by 1 degree.
-	spin(0.1f);
+	// spin(0.1f);
 }
 
 void Cube::spin(float deg)
