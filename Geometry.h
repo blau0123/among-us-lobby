@@ -1,12 +1,6 @@
 #ifndef _GEOMETRY_H_
 #define _GEOMETRY_H_
 
-#ifdef __APPLE__
-#include <OpenGL/gl3.h>
-#else
-#include <GL/glew.h>
-#endif
-
 #include "Node.h"
 
 #include <vector>
@@ -33,7 +27,7 @@ public:
 	Geometry(std::string filename);
 	~Geometry();
 	// Calculate the object's coordinates relative to parent using C and modelview matrix 
-	void draw(const glm::mat4& C);
+	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader);
 	// Load OBJ file
 	void init(std::string filename);
 	// Used to separate bounding sphere updates from rendering

@@ -35,6 +35,7 @@ public:
 
 	// Scene Graph nodes
 	static Transform* World;
+	static Geometry* SphereGeo;
 
 	// Camera Matrices
 	static glm::mat4 projection;

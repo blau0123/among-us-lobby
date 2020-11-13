@@ -16,6 +16,10 @@ PointCloud* Window::bearPoints;
 LightSource* Window::lightSphere;
 Object* currObj;
 
+// Scene Graph nodes
+Transform* Window::World;
+Geometry* Window::SphereGeo;
+
 // Camera Matrices 
 // Projection matrix:
 glm::mat4 Window::projection; 
@@ -55,6 +59,9 @@ bool Window::initializeProgram() {
 bool Window::initializeSceneGraph() {
 	// Set up scene graph and connections
 	World = new Transform();
+	SphereGeo = new Geometry("obj/trisphere.obj");
+	World->addChild(SphereGeo);
+	return true;
 }
 
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
@@ -214,7 +221,9 @@ void Window::displayCallback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-	sphere->draw(view, projection, eyePos, sphereShaderProgram);
+	// Use Phong illumination shader for Scene Graph
+	World->draw(glm::mat4(1), view, projection, shaderProgram);
+	// sphere->draw(view, projection, eyePos, sphereShaderProgram);
 	// Always render skybox last
 	cube->draw(view, projection, skyBoxShaderProgram);
 

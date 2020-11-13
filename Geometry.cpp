@@ -108,8 +108,38 @@ void Geometry::init(std::string filename) {
 	glBindVertexArray(0);
 }
 
-void Geometry::draw(const glm::mat4& C) {
-	// Render the object
+void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
+	// Apply the parent's transformations to the Geometry's model so that it is in the correct position relative to the parent
+	model = C * model;
+
+	// Actiavte the shader program 
+	glUseProgram(shader);
+
+	// Get the shader variable locations and send the uniform data to the shader 
+	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(C));
+
+	/*
+	glUniform3fv(glGetUniformLocation(shader, "k_diffuse"), 1, glm::value_ptr(k_diffuse));
+	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
+	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
+	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
+	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 0);
+	*/
+
+	// Pass in which render mode we are in (normal, Phong)
+	glUniform1i(glGetUniformLocation(shader, "render_mode"), 1);
+
+	// Bind the VAO
+	glBindVertexArray(vao);
+
+	// Draw the points using triangles, indexed with the EBO
+	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
+
+	// Unbind the VAO and shader program
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 void Geometry::update() {
