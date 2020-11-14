@@ -72,6 +72,7 @@ void main()
 
     // Use the color passed in. An alpha of 1.0f means it is not transparent.
     fragColor = vec4(resultColor, 1.0);
+    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
 
 /* Will use light properties defined in the uniform variables

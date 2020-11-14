@@ -189,7 +189,7 @@ void LightSource::draw(const glm::mat4& view, const glm::mat4& projection, GLuin
 	// Draw the points 
 	// glDrawArrays(GL_POINTS, 0, points.size());
 	// Draw the points using triangles, indexed with the EBO
-	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
+	// glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);

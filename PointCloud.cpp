@@ -181,7 +181,7 @@ void PointCloud::draw(const glm::mat4& view, const glm::mat4& projection, GLuint
 	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 0);
 
 	// Pass in which render mode we are in (normal, Phong)
-	glUniform1i(glGetUniformLocation(shader, "render_mode"), renderMode);
+	glUniform1i(glGetUniformLocation(shader, "render_mode"), 1/*renderMode*/);
 
 	// Bind the VAO
 	glBindVertexArray(VAO);

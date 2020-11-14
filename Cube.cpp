@@ -7,7 +7,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-Cube::Cube(float size) 
+Cube::Cube(unsigned int *cubeMapID) 
 {
 	// Model matrix. Since the original size of the cube is 2, in order to
 	// have a cube of some size, we need to scale the cube by size / 2.
@@ -76,6 +76,7 @@ Cube::Cube(float size)
 		"skybox_textures/Skybox_Water222_back.jpg"
 	};
 	cubemapTextureID = loadCubemap(faces);
+	*cubeMapID = cubemapTextureID;
 	std::cout << "Loaded cube map with texture id: " << cubemapTextureID << std::endl;
 
 	// Initialize model view matrix
@@ -175,6 +176,7 @@ void Cube::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shade
 	glBindVertexArray(VAO);
 
 	// Draw the points using triangles, indexed with the EBO
+	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureID);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);

@@ -35,6 +35,7 @@ public:
 
 	// Scene Graph nodes
 	static Transform* World;
+	static Transform* SphereToWorld;
 	static Geometry* SphereGeo;
 
 	// Camera Matrices
@@ -47,6 +48,8 @@ public:
 	static GLuint shaderProgram;
 	static GLuint skyBoxShaderProgram;
 	static GLuint sphereShaderProgram;
+
+	static unsigned int cubemapTextureID;
 
 	// Constructors and Destructors
 	static bool initializeProgram();

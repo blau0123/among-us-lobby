@@ -2,7 +2,6 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <glm/gtx/string_cast.hpp>
 
 Geometry::Geometry(std::string filename) {
 	init(filename);
@@ -110,23 +109,20 @@ void Geometry::init(std::string filename) {
 
 void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
 	// Apply the parent's transformations to the Geometry's model so that it is in the correct position relative to the parent
-	model = C * model;
-
+	model = C;
 	// Actiavte the shader program 
 	glUseProgram(shader);
 
 	// Get the shader variable locations and send the uniform data to the shader 
 	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(C));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-	/*
 	glUniform3fv(glGetUniformLocation(shader, "k_diffuse"), 1, glm::value_ptr(k_diffuse));
 	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
 	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
 	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 0);
-	*/
 
 	// Pass in which render mode we are in (normal, Phong)
 	glUniform1i(glGetUniformLocation(shader, "render_mode"), 1);
@@ -140,6 +136,18 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);
 	glUseProgram(0);
+}
+
+void Geometry::transform(glm::mat4 transformMatrix) {
+	model = transformMatrix * model;
+}
+
+void Geometry::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s) {
+	// Set the uniform variable for k for diffuse, specular, ambient for this specific object
+	k_diffuse = k_d;
+	k_specular = k_s;
+	k_ambient = k_a;
+	shininess = s;
 }
 
 void Geometry::update() {

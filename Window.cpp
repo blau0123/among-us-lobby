@@ -16,8 +16,11 @@ PointCloud* Window::bearPoints;
 LightSource* Window::lightSphere;
 Object* currObj;
 
+unsigned int Window::cubemapTextureID;
+
 // Scene Graph nodes
 Transform* Window::World;
+Transform* Window::SphereToWorld;
 Geometry* Window::SphereGeo;
 
 // Camera Matrices 
@@ -59,8 +62,18 @@ bool Window::initializeProgram() {
 bool Window::initializeSceneGraph() {
 	// Set up scene graph and connections
 	World = new Transform();
-	SphereGeo = new Geometry("obj/trisphere.obj");
-	World->addChild(SphereGeo);
+	SphereToWorld = new Transform();
+	SphereGeo = new Geometry("obj/bunny.obj");
+	SphereGeo->setModelMaterialProperties(
+		glm::vec3(0.61424, 0.04136, 0.04136),
+		glm::vec3(0.727811, 0.626959, 0.626959),
+		glm::vec3(1.0f, 0.5f, 0.31f),
+		0.1f
+	);
+	SphereToWorld->addChild(SphereGeo);
+	SphereToWorld->transform(glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
+	//SphereGeo->transform(glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
+	World->addChild(SphereToWorld);
 	return true;
 }
 
@@ -68,12 +81,25 @@ bool Window::initializeSceneGraph() {
 bool Window::initializeObjects()
 {
 	// Create cubemap as our skybox
-	cube = new Cube(5.0f);
+	cube = new Cube(&cubemapTextureID);
+	std::cout << cubemapTextureID << std::endl;
 
 	// Create tesselated sphere
 	sphere = new Sphere();
-	sphere->init("obj/trisphere.obj");
+	sphere->init();
 
+	lightSphere = new LightSource("obj/sphere.obj", 10);
+	lightSphere->setModelMaterialProperties(
+		glm::vec3(0.0, 0.0, 0.0),
+		glm::vec3(0.0, 0.0, 0.0),
+		glm::vec3(1.0f, 0.5f, 0.31f),
+		0.1f
+	);
+
+	// Initialize light source properties
+	lightSphere->initializeLightSourceProperties(shaderProgram, eyePos);
+
+	/*
 	// Create a point cloud consisting of cube vertices.
 	bunnyPoints = new PointCloud("obj/bunny.obj", 10);
 	// Set the material properties for the bunny (k_d, k_s, k_a, shininess)
@@ -102,21 +128,9 @@ bool Window::initializeObjects()
 		0.1f
 	);
 
-	lightSphere = new LightSource("obj/sphere.obj", 10);
-	lightSphere->setModelMaterialProperties(
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		// Color of the light
-		glm::vec3(1.0f, 0.5f, 0.31f),
-		0.1f
-	);
-
-	// Initialize light source properties
-	lightSphere->initializeLightSourceProperties(shaderProgram, eyePos);
-
 	// Set the bear point cloud to be the first thing to show
 	currObj = bearPoints;
-
+	*/
 	return true;
 }
 
@@ -213,20 +227,18 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 void Window::idleCallback()
 {
 	// Perform any necessary updates here 
-	currObj->update();
+	// currObj->update();
 }
 
 void Window::displayCallback(GLFWwindow* window)
 {	
 	// Clear the color and depth buffers
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	cube->draw(view, projection, skyBoxShaderProgram);
 	// Use Phong illumination shader for Scene Graph
 	World->draw(glm::mat4(1), view, projection, shaderProgram);
-	// sphere->draw(view, projection, eyePos, sphereShaderProgram);
-	// Always render skybox last
-	cube->draw(view, projection, skyBoxShaderProgram);
-
+	// lightSphere->draw(view, projection, shaderProgram);
+	// sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
 	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);
 	// If the current render mode is 1, show the light source and if not (normal shading), don't show
@@ -276,10 +288,12 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 
 void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
 	glm::vec2 curPos(xpos, ypos);
+	/*
 	if (rotateType == 1 || rotateType == 3)
 		((PointCloud*)currObj)->rotateModel(Window::width, Window::height, curPos);
 	if (rotateType == 2 || rotateType == 3)
 		lightSphere->rotateModel(Window::width, Window::height, curPos);
+	*/
 }
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)

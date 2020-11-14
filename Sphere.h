@@ -23,9 +23,9 @@ public:
 	Sphere();
 	~Sphere();
 
-	void draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, GLuint shader);
+	void draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, unsigned int cubemapTextureID, GLuint shader);
 	void draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader);
-	void init(std::string objFilename);
+	void init();
 	void update();
 };
 

@@ -27,12 +27,13 @@ Sphere::~Sphere()
 	glDeleteVertexArrays(1, &m_vao);
 }
 
-void Sphere::init(std::string objFilename) {
+void Sphere::init() {
 	int i, j;
 	std::vector<GLfloat> vertices1;
 	std::vector<GLuint> indices1;
 	std::vector<GLfloat> norms1;
 	int indicator = 0;
+
 	for (i = 0; i <= lats; i++) {
 		double lat0 = glm::pi<double>() * (-0.5 + (double)(i - 1.0) / lats);
 		double z0 = sin(lat0);
@@ -44,25 +45,65 @@ void Sphere::init(std::string objFilename) {
 
 		for (j = 0; j <= longs; j++) {
 			double lng = 2 * glm::pi<double>() * (double)(j - 1.0) / longs;
+			double lng1 = 2 * glm::pi<double>() * (double)(j) / longs;
+			double x1 = cos(lng1);
+			double y1 = sin(lng1);
 			double x = cos(lng);
 			double y = sin(lng);
+
+			// Calculate the 4 vertices for the quad
+			/*
+				 x		x1
+			y -> *		*
+
+			y1 -> *		* 
+			*/
+			vertices1.push_back(x * zr1);
+			vertices1.push_back(y * zr1);
+			vertices1.push_back(z1);
+			indices1.push_back(indicator);
+			indicator++;
 
 			vertices1.push_back(x * zr0);
 			vertices1.push_back(y * zr0);
 			vertices1.push_back(z0);
-			//vertexNorms.push_back(glm::normalize(glm::vec3(x * zr0, y * zr0, z0)));
 			indices1.push_back(indicator);
 			indicator++;
 
-			vertices1.push_back(x * zr1);
-			vertices1.push_back(y * zr1);
-			vertices1.push_back(z1);
-			// get 4 quad points: if start long = 0, lat = 0, get right point by long + 1, lat + long to get bottom left, lat + long + 1 to get bottom right
-			// get positions of each point, then get difference vectors between 0,0; 0, long+1; 0, 1
-			// cross product of the difference vectors to get perpendicular vector
-			//vertexNorms.push_back(glm::normalize(glm::vec3(x * zr1, y * zr1, z1)));
+			vertices1.push_back(x1 * zr0);
+			vertices1.push_back(y1 * zr0);
+			vertices1.push_back(z0);
 			indices1.push_back(indicator);
 			indicator++;
+
+			vertices1.push_back(x1 * zr1);
+			vertices1.push_back(y1 * zr1);
+			vertices1.push_back(z1);
+			indices1.push_back(indicator);
+			indicator++;
+
+			// Calculate the avg of each axis, so then can get the normal for the entire quad, not just for each vertex
+			float x_avg = ((x * zr1) + (x * zr0) + (x1 * zr0) + (x1 * zr1)) / 4;
+			float y_avg = ((y * zr1) + (y * zr0) + (y1 * zr0) + (y1 * zr1)) / 4;
+			float z_avg = (2 * z0 + 2 * z1) / 4;
+			glm::vec3 avg = glm::normalize(glm::vec3(x_avg, y_avg, z_avg));
+
+			// Each vertex for a single quad will have the same normal
+			norms1.push_back(avg.x);
+			norms1.push_back(avg.y);
+			norms1.push_back(avg.z);
+
+			norms1.push_back(avg.x);
+			norms1.push_back(avg.y);
+			norms1.push_back(avg.z);
+
+			norms1.push_back(avg.x);
+			norms1.push_back(avg.y);
+			norms1.push_back(avg.z);
+
+			norms1.push_back(avg.x);
+			norms1.push_back(avg.y);
+			norms1.push_back(avg.z);
 		}
 
 		indices1.push_back(GL_PRIMITIVE_RESTART_FIXED_INDEX);
@@ -72,7 +113,7 @@ void Sphere::init(std::string objFilename) {
 	// Initialize model view matrix
 	model = glm::mat4(1);
 	// Scale the sphere so it's bigger on the screen
-	model = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f)) * model;
+	// model = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f)) * model;
 
 	// Generate a Vertex Array (VAO) and Vertex Buffer Object (VBO)
 	glGenVertexArrays(1, &m_vao);
@@ -85,17 +126,16 @@ void Sphere::init(std::string objFilename) {
 	// Bind VBO to the bound VAO, and store the point data
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboVertex);
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices1.size(), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices1.size(), &vertices1[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 0 to pass point data through to the shader
 	glEnableVertexAttribArray(0);
 	// Location for the position layout variable in the vertex shader
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	// Bind VBO2 to the bound VAO, and store the vertex norm data
 	glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), vertexNorms.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * norms1.size(), &norms1[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
 	glEnableVertexAttribArray(1);
@@ -105,7 +145,6 @@ void Sphere::init(std::string objFilename) {
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &m_eboIndex);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboIndex);
-	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * indices.size(), indices.data(), GL_STATIC_DRAW);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLuint) * indices1.size(), &indices1[0], GL_STATIC_DRAW);
 
 	// Unbind the VBO/VAO
@@ -120,9 +159,9 @@ void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, GLuint sha
 
 }
 
-void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, GLuint shader)
+void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, unsigned int cubemapTextureID, GLuint shader)
 {
-	// Actiavte the shader program 
+	// Activate the shader program 
 	glUseProgram(shader);
 
 	// Get the shader variable locations and send the uniform data to the shader 
@@ -133,19 +172,18 @@ void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm:
 	glUniform3fv(glGetUniformLocation(shader, "cameraPos"), 1, glm::value_ptr(cameraPos));
 	// Send uniform skybox data to shader for reflections
 	glUniform1i(glGetUniformLocation(shader, "skybox"), 0);
-	glUniform3fv(glGetUniformLocation(shader, "color"), 1, glm::value_ptr(color));
 
 	// Bind the VAO
 	glBindVertexArray(m_vao);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureID);
+
+	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboIndex);
-	glDrawElements(GL_QUAD_STRIP, numEltsToDraw, GL_UNSIGNED_INT, 0);
-	// Draw the points using triangles, indexed with the EBO
-	// Somehow needs to bind the texture cube map to the id of the cubemap from Cube.cpp
-	// glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
-	// glDrawElements(GL_TRIANGLES, numEltsToDraw, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_QUADS, numEltsToDraw, GL_UNSIGNED_INT, NULL);
 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);

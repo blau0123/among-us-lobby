@@ -14,7 +14,7 @@ private:
 	unsigned int cubemapTextureID;
 
 public:
-	Cube(float size);
+	Cube(unsigned int* cubeMapID);
 	~Cube();
 
 	unsigned int loadCubemap(std::vector<std::string> faces);
