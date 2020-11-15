@@ -21,6 +21,11 @@ private:
 	std::vector<glm::vec3> vertexNorms;
 	std::vector<glm::ivec3> indices;
 
+	// These will hold vertices and normals with the same ordering, so therefore we don't need an EBO for indices
+	std::vector<glm::vec3> out_vertices;
+	std::vector<glm::vec3> out_normals;
+	std::vector<glm::ivec3> out_indices;
+
 	glm::vec3 k_diffuse;
 	glm::vec3 k_specular;
 	glm::vec3 k_ambient;

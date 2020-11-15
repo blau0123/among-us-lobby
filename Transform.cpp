@@ -9,6 +9,13 @@ Transform::Transform() {
 	M = glm::mat4(1);
 }
 
+Transform::~Transform() {
+	// Delete all children
+	for (Node* child: children) {
+		delete child;
+	}
+}
+
 void Transform::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
 	// C = model matrix of parent (for world, C = 4x4 identity matrix) aka transformation of parent
 	// Do M * C to transform the current geometry/transform based on the parent's transformation
@@ -23,7 +30,6 @@ void Transform::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4&
 void Transform::transform(glm::mat4 transformMatrix) {
 	// Add a transformation to the transform matrix
 	M = transformMatrix * M;
-	std::cout << "in transform: " << glm::to_string(M) << std::endl;
 }
 
 void Transform::addChild(Node* child) {

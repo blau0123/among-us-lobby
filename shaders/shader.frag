@@ -67,38 +67,9 @@ void main()
         diffuse *= attenuation;
         specular *= attenuation;
 
-        resultColor = ambient + diffuse + specular;// CalcPointLight(norm, fragPos, viewDir);
+        resultColor = ambient + diffuse + specular;
     }
 
     // Use the color passed in. An alpha of 1.0f means it is not transparent.
     fragColor = vec4(resultColor, 1.0);
-    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
-
-/* Will use light properties defined in the uniform variables
-vec3 CalcPointLight(vec3 normal, vec3 fragPos, vec3 viewDir) {
-    vec3 lightDir = normalize(lightPosition - fragPos);
-    // Calculate diffuse shading
-    float diffuse = max(dot(normal, lightDir), 0.0);
-
-    // Calculate specular shading
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-
-    // (Linear) attenuation
-    float distance = length(lightPosition - fragPos);
-    float attenuation = 1.0f / (lightLinear * distance);
-
-    // Calculate ambient, diffuse, and specular
-    vec3 ambient = lightColor * k_ambient;
-    vec3 diffuse = lightColor * k_diffuse * diffuse;
-    vec3 specular = lightColor * spec * k_specular;
-
-    // Multiply by the attenuation
-    ambient *= attenuation;
-    diffuse *= attenuation;
-    specular *= attenuation;
-
-    return (ambient + diffuse + specular);
-}
-*/

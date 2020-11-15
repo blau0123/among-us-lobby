@@ -63,17 +63,22 @@ bool Window::initializeSceneGraph() {
 	// Set up scene graph and connections
 	World = new Transform();
 	SphereToWorld = new Transform();
-	SphereGeo = new Geometry("obj/bunny.obj");
-	SphereGeo->setModelMaterialProperties(
-		glm::vec3(0.61424, 0.04136, 0.04136),
-		glm::vec3(0.727811, 0.626959, 0.626959),
-		glm::vec3(1.0f, 0.5f, 0.31f),
-		0.1f
-	);
-	SphereToWorld->addChild(SphereGeo);
-	SphereToWorld->transform(glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
-	//SphereGeo->transform(glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
-	World->addChild(SphereToWorld);
+	// Create 10 ferris wheel carts in different positions
+	for (int i = 0; i < 1; i++) {
+		Geometry* geo = new Geometry("obj/cylinder.obj");
+		Transform* geoToWorld = new Transform();
+		geo->setModelMaterialProperties(
+			glm::vec3(0.61424, 0.04136, 0.04136),
+			glm::vec3(0.727811, 0.626959, 0.626959),
+			glm::vec3(1.0f, 0.5f, 0.31f),
+			0.1f
+		);
+		geoToWorld->addChild(geo);
+		// Depending on which geometry node it is, determine where along circle outskirt to translate it to
+		geoToWorld->transform(glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
+		geoToWorld->transform(glm::translate(glm::vec3(i, i, i)));
+		World->addChild(geoToWorld);
+	}
 	return true;
 }
 
@@ -82,7 +87,6 @@ bool Window::initializeObjects()
 {
 	// Create cubemap as our skybox
 	cube = new Cube(&cubemapTextureID);
-	std::cout << cubemapTextureID << std::endl;
 
 	// Create tesselated sphere
 	sphere = new Sphere();
@@ -143,6 +147,11 @@ void Window::cleanUp()
 	delete sandalPoints;
 	delete cubePoints;
 	delete lightSphere;
+
+	// Deallocate scene graph nodes
+	delete World;
+	delete SphereGeo;
+	delete SphereToWorld;
 
 	// Delete the shader program.
 	glDeleteProgram(shaderProgram);
@@ -237,7 +246,7 @@ void Window::displayCallback(GLFWwindow* window)
 	cube->draw(view, projection, skyBoxShaderProgram);
 	// Use Phong illumination shader for Scene Graph
 	World->draw(glm::mat4(1), view, projection, shaderProgram);
-	// lightSphere->draw(view, projection, shaderProgram);
+	lightSphere->draw(view, projection, shaderProgram);
 	// sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
 	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);

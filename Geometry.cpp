@@ -18,10 +18,15 @@ Geometry::~Geometry()
 
 void Geometry::init(std::string filename) {
 	std::ifstream objFile(filename);
+	// Hold the indices for vertices and normals in order to get a vertices and normals vector with same ordering
+	std::vector<int> vertexIndices;
+	std::vector<int> normalIndices;
+
 	// Check whether the file can be opened before reading
 	if (objFile.is_open()) {
 		// Get one line at a time
 		std::string line;
+
 		while (std::getline(objFile, line)) {
 			// Turn the line into a string stream for processing
 			std::stringstream ss;
@@ -49,12 +54,25 @@ void Geometry::init(std::string filename) {
 				glm::ivec3 faceIndices;
 				// Get the three vertex-vertex normal index pairs (the x, y, z)
 				std::string pairsX, pairsY, pairsZ;
+				int lastX = 0;
+				int lastY = 0;
+				int lastZ = 0;
 				ss >> pairsX >> pairsY >> pairsZ;
 				// Subtract one because indices start at 1, so will be one off of the real vertex indices
 				faceIndices.x = std::stoi(pairsX.substr(0, pairsX.find("/"))) - 1;
 				faceIndices.y = std::stoi(pairsY.substr(0, pairsY.find("/"))) - 1;
 				faceIndices.z = std::stoi(pairsZ.substr(0, pairsZ.find("/"))) - 1;
 				indices.push_back(faceIndices);
+
+				vertexIndices.push_back(std::stoi(pairsX.substr(0, pairsX.find("/", lastX))));
+				vertexIndices.push_back(std::stoi(pairsY.substr(0, pairsY.find("/", lastY))));
+				vertexIndices.push_back(std::stoi(pairsZ.substr(0, pairsZ.find("/", lastZ))));
+				lastX = pairsX.find("/", lastX) + 1;
+				lastY = pairsY.find("/", lastY) + 1;
+				lastZ = pairsZ.find("/", lastZ) + 1;
+				normalIndices.push_back(std::stoi(pairsX.substr(pairsX.find("/", lastX) + 1)));
+				normalIndices.push_back(std::stoi(pairsY.substr(pairsY.find("/", lastY) + 1)));
+				normalIndices.push_back(std::stoi(pairsZ.substr(pairsZ.find("/", lastZ) + 1)));
 			}
 		}
 	}
@@ -64,9 +82,24 @@ void Geometry::init(std::string filename) {
 
 	objFile.close();
 
-	std::cout << "Number of points read for object " << filename << ": " << vertices.size() << std::endl;
-	std::cout << "Number of vertex norms read for object " << filename << ": " << vertexNorms.size() << std::endl;
-	std::cout << "Number of faces read for object " << filename << ": " << indices.size() << std::endl;
+	// For each vertex of each triangle, add the vertex position with it's corresponding normal
+	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
+		// Get the vertex and normal from the given index
+		int vertexIndex = vertexIndices[i];
+		int normIndex = normalIndices[i];
+		glm::vec3 vertex = vertices[vertexIndex - 1];
+		glm::vec3 normal = vertexNorms[vertexIndex - 1];
+		out_vertices.push_back(vertex);
+		out_normals.push_back(normal);
+	}
+
+	for (unsigned int i = 0; i < vertexIndices.size() - 2; i+=3) {
+		glm::ivec3 index;
+		index.x = i;
+		index.y = i + 1;
+		index.z = i + 2;
+		out_indices.push_back(index);
+	}
 
 	// Set the model matrix to an identity matrix. 
 	model = glm::mat4(1);
@@ -81,7 +114,8 @@ void Geometry::init(std::string filename) {
 
 	// Bind VBO to the bound VAO, and store the point data
 	glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * out_vertices.size(), &out_vertices[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 0 to pass point data through to the shader
 	glEnableVertexAttribArray(0);
@@ -90,7 +124,8 @@ void Geometry::init(std::string filename) {
 
 	// Bind VBO2 to the bound VAO, and store the vertex norm data
 	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), vertexNorms.data(), GL_STATIC_DRAW);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), vertexNorms.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * out_normals.size(), &out_normals[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
 	glEnableVertexAttribArray(1);
@@ -100,7 +135,8 @@ void Geometry::init(std::string filename) {
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &eboIndices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboIndices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3)* out_indices.size(), &out_indices[0], GL_STATIC_DRAW);
 
 	// Unbind the VBO/VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -21,6 +21,7 @@ private:
 
 public:
 	Transform();
+	~Transform();
 	// Will traverse the list of children and call each child node's draw function
 	// When draw(C) is called, multiply matrix M with matrix C
 	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader);
