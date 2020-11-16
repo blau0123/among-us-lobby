@@ -34,6 +34,8 @@ private:
 	glm::vec3 k_ambient;
 	float shininess;
 
+	std::string name;
+
 	GLuint vao, vboVertex, vboNormals, eboIndices;
 
 public:

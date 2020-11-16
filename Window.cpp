@@ -22,8 +22,10 @@ unsigned int Window::cubemapTextureID;
 Transform* Window::World;
 Transform* Window::GroundToWorld;
 Transform* Window::SphereToWorld;
+Transform* Window::WheelToGround;
 Geometry* Window::Ground;
 Geometry* Window::SphereGeo;
+Geometry* Window::WheelGeo;
 
 // Camera Matrices 
 // Projection matrix:
@@ -66,7 +68,10 @@ bool Window::initializeSceneGraph() {
 	// Create all transformations
 	World = new Transform();
 	GroundToWorld = new Transform();
+	WheelToGround = new Transform();
+
 	World->addChild(GroundToWorld);
+	GroundToWorld->addChild(WheelToGround);
 
 	// Create all Geometry nodes
 	Ground = new Geometry(""); // All objects on screen will be grounded to this Ground node
@@ -78,25 +83,16 @@ bool Window::initializeSceneGraph() {
 	);
 	GroundToWorld->addChild(Ground);
 	GroundToWorld->transform(glm::translate(glm::vec3(0.0f, -5.0f, 0.0f)));
-	/*
-	SphereToWorld = new Transform();
-	// Create 10 ferris wheel carts in different positions
-	for (int i = 0; i < 1; i++) {
-		Geometry* geo = new Geometry("obj/cylinder.obj");
-		Transform* geoToWorld = new Transform();
-		geo->setModelMaterialProperties(
-			glm::vec3(0.61424, 0.04136, 0.04136),
-			glm::vec3(0.727811, 0.626959, 0.626959),
-			glm::vec3(1.0f, 0.5f, 0.31f),
-			0.1f
-		);
-		geoToWorld->addChild(geo);
-		// Depending on which geometry node it is, determine where along circle outskirt to translate it to
-		geoToWorld->transform(glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
-		geoToWorld->transform(glm::translate(glm::vec3(i, i, i)));
-		World->addChild(geoToWorld);
-	}
-	*/
+
+	WheelGeo = new Geometry("obj/torus_lr.obj");
+	WheelGeo->setModelMaterialProperties(
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.0, 0.7, 0.0),
+		0.4f
+	);
+	WheelToGround->addChild(WheelGeo);
+	WheelToGround->transform(glm::translate(glm::vec3(0.0f, 10.0f, 0.0f)) * glm::scale(glm::vec3(5.0f, 2.0f, 5.0f)));
 	return true;
 }
 
@@ -170,6 +166,10 @@ void Window::cleanUp()
 	delete World;
 	delete SphereGeo;
 	delete SphereToWorld;
+	delete Ground;
+	delete GroundToWorld;
+	delete WheelGeo;
+	delete WheelToGround;
 
 	// Delete the shader program.
 	glDeleteProgram(shaderProgram);

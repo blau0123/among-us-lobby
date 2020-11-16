@@ -37,8 +37,10 @@ public:
 	static Transform* World;
 	static Transform* GroundToWorld;
 	static Transform* SphereToWorld;
+	static Transform* WheelToGround;
 	static Geometry* Ground;
 	static Geometry* SphereGeo;
+	static Geometry* WheelGeo;
 
 	// Camera Matrices
 	static glm::mat4 projection;

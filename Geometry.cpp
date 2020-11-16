@@ -4,6 +4,7 @@
 #include <iostream>
 
 Geometry::Geometry(std::string filename) {
+	name = filename;
 	if (filename == "")
 		initGround();
 	else
@@ -45,9 +46,9 @@ void Geometry::initGround() {
 	};
 
 	std::vector<glm::vec3> vertexNorms{
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(1.0f, 0.0f, 0.0f)
+		glm::vec3(0.0f, 1.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
 	};
 
 	// Each ivec3(v1, v2, v3) define a triangle consists of vertices v1, v2 
@@ -86,6 +87,8 @@ void Geometry::initGround() {
 	// Unbind the VBO/VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	std::cout << "Finished initing ground plane" << std::endl;
 }
 
 void Geometry::init(std::string filename) {
@@ -213,6 +216,8 @@ void Geometry::init(std::string filename) {
 	// Unbind the VBO/VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	std::cout << "Finished initing Geometry obj " << name << std::endl;
 }
 
 void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
