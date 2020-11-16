@@ -35,7 +35,9 @@ public:
 
 	// Scene Graph nodes
 	static Transform* World;
+	static Transform* GroundToWorld;
 	static Transform* SphereToWorld;
+	static Geometry* Ground;
 	static Geometry* SphereGeo;
 
 	// Camera Matrices

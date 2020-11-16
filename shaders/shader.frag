@@ -20,8 +20,8 @@ uniform int isLightSource;
 uniform float shininess;
 
 uniform int render_mode;
+uniform int is_ground;
 
-// Possibly = to eyePos in Window?
 uniform vec3 viewPos;
 
 // You can output many things. The first vec4 type output determines the color of the fragment
@@ -72,4 +72,5 @@ void main()
 
     // Use the color passed in. An alpha of 1.0f means it is not transparent.
     fragColor = vec4(resultColor, 1.0);
+    
 }

@@ -20,7 +20,9 @@ unsigned int Window::cubemapTextureID;
 
 // Scene Graph nodes
 Transform* Window::World;
+Transform* Window::GroundToWorld;
 Transform* Window::SphereToWorld;
+Geometry* Window::Ground;
 Geometry* Window::SphereGeo;
 
 // Camera Matrices 
@@ -61,7 +63,22 @@ bool Window::initializeProgram() {
 
 bool Window::initializeSceneGraph() {
 	// Set up scene graph and connections
+	// Create all transformations
 	World = new Transform();
+	GroundToWorld = new Transform();
+	World->addChild(GroundToWorld);
+
+	// Create all Geometry nodes
+	Ground = new Geometry(""); // All objects on screen will be grounded to this Ground node
+	Ground->setModelMaterialProperties(
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(1.0f, 0.5f, 0.31f),
+		0.0f
+	);
+	GroundToWorld->addChild(Ground);
+	GroundToWorld->transform(glm::translate(glm::vec3(0.0f, -5.0f, 0.0f)));
+	/*
 	SphereToWorld = new Transform();
 	// Create 10 ferris wheel carts in different positions
 	for (int i = 0; i < 1; i++) {
@@ -79,6 +96,7 @@ bool Window::initializeSceneGraph() {
 		geoToWorld->transform(glm::translate(glm::vec3(i, i, i)));
 		World->addChild(geoToWorld);
 	}
+	*/
 	return true;
 }
 
