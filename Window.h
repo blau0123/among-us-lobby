@@ -35,6 +35,23 @@ public:
 
 	// Scene Graph nodes
 	static Transform* World;
+	static Transform* translateGround;
+	static Transform* translateGroundBack;
+	static Transform* translatePole;
+	static Transform* scalePole;
+	static Transform* translateWheel;
+	static Transform* scaleWheel;
+	static Transform* translateCar;
+	static Transform* rotateCar;
+	static std::vector<Transform*> rotateCars;
+
+	static Geometry* ground;
+	static Geometry* pole;
+	static Geometry* wheel;
+	static Geometry* car;
+	static Geometry* car2;
+	static std::vector<Geometry*> cars;
+	/*
 	static Transform* GroundToWorld;
 	static Transform* CylinderToGround;
 	static Transform* WheelToCylinder;
@@ -44,6 +61,7 @@ public:
 	static Geometry* WheelGeo;
 	static Geometry* CylinderGeo;
 	static std::vector<Geometry*> Cars;
+	*/
 
 	// Camera Matrices
 	static glm::mat4 projection;

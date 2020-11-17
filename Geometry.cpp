@@ -148,8 +148,9 @@ void Geometry::init(std::string filename) {
 
 void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
 	// Apply the parent's transformations to the Geometry's model so that it is in the correct position relative to the parent
-	model = C;
-	std::cout << name << ": " << glm::to_string(model) << std::endl;
+	//model = C;
+	glm::mat4 matToPass = C * model;
+	// std::cout << name << ": " << glm::to_string(matToPass) << std::endl;
 
 	// Actiavte the shader program 
 	glUseProgram(shader);
@@ -157,7 +158,7 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 	// Get the shader variable locations and send the uniform data to the shader 
 	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
-	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(matToPass));
 	
 	glUniform3fv(glGetUniformLocation(shader, "k_diffuse"), 1, glm::value_ptr(k_diffuse));
 	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
