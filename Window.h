@@ -36,11 +36,14 @@ public:
 	// Scene Graph nodes
 	static Transform* World;
 	static Transform* GroundToWorld;
-	static Transform* SphereToWorld;
-	static Transform* WheelToGround;
+	static Transform* CylinderToGround;
+	static Transform* WheelToCylinder;
+	static std::vector<Transform*> CarsToWheel;
+
 	static Geometry* Ground;
-	static Geometry* SphereGeo;
 	static Geometry* WheelGeo;
+	static Geometry* CylinderGeo;
+	static std::vector<Geometry*> Cars;
 
 	// Camera Matrices
 	static glm::mat4 projection;

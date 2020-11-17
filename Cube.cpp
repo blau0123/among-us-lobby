@@ -31,14 +31,14 @@ Cube::Cube(unsigned int *cubeMapID)
 	// The 8 vertices of a cube.
 	std::vector<glm::vec3> vertices
 	{
-		glm::vec3(-500, 500, 500),
+		glm::vec3(-500, 500, 500),//
 		glm::vec3(-500, -500, 500),
 		glm::vec3(500, -500, 500),
-		glm::vec3(500, 500, 500),
-		glm::vec3(-500, 500, -500),
+		glm::vec3(500, 500, 500),//
+		glm::vec3(-500, 500, -500),//
 		glm::vec3(-500, -500, -500),
 		glm::vec3(500, -500, -500),
-		glm::vec3(500, 500, -500)
+		glm::vec3(500, 500, -500)//
 	}; 
 
 	// Each ivec3(v1, v2, v3) define a triangle consists of vertices v1, v2 

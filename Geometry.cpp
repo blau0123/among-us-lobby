@@ -5,10 +5,7 @@
 
 Geometry::Geometry(std::string filename) {
 	name = filename;
-	if (filename == "")
-		initGround();
-	else
-		init(filename);
+	init(filename);
 }
 
 Geometry::~Geometry()
@@ -18,77 +15,6 @@ Geometry::~Geometry()
 	glDeleteBuffers(1, &vboNormals);
 	glDeleteBuffers(1, &eboIndices);
 	glDeleteVertexArrays(1, &vao);
-}
-
-// Initialize the ground plane that all objects will be grounded to
-void Geometry::initGround() {
-	model = glm::mat4(1);
-	isGround = 1;
-
-	/*
-	 * Cube indices used below.
-	 *    4----7
-	 *   /|   /|
-	 *  0-+--3 |
-	 *  | 5--+-6
-	 *  |/   |/
-	 *  1----2
-	 *
-	 */
-
-	 // The 8 vertices of a cube.
-	std::vector<glm::vec3> vertices
-	{
-		glm::vec3(-500, 500, 500),
-		glm::vec3(500, 500, 500),
-		glm::vec3(-500, 500, -500),
-		glm::vec3(500, 500, -500)
-	};
-
-	std::vector<glm::vec3> vertexNorms{
-		glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	};
-
-	// Each ivec3(v1, v2, v3) define a triangle consists of vertices v1, v2 
-	// and v3 in counter-clockwise order.
-	std::vector<glm::ivec3> indices
-	{
-		// Top face.
-		glm::ivec3(2, 0, 1),
-		glm::ivec3(1, 4, 2)
-	};
-
-	// Generate a vertex array (VAO) and vertex buffer object (VBO).
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vboVertex);
-
-	// Bind to the VAO.
-	glBindVertexArray(vao);
-
-	// Bind VBO to the bound VAO, and store the vertex data
-	glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
-	// Enable Vertex Attribute 0 to pass the vertex data through to the shader
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-
-	// Bind VBO2 to the bound VAO, and store the vertex norm data
-	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-	// glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), vertexNorms.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), &vertexNorms[0], GL_STATIC_DRAW);
-
-	// Generate EBO, bind the EBO to the bound VAO, and send the index data
-	glGenBuffers(1, &eboIndices);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboIndices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * indices.size(), &indices[0], GL_STATIC_DRAW);
-
-	// Unbind the VBO/VAO
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	std::cout << "Finished initing ground plane" << std::endl;
 }
 
 void Geometry::init(std::string filename) {
@@ -223,6 +149,8 @@ void Geometry::init(std::string filename) {
 void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
 	// Apply the parent's transformations to the Geometry's model so that it is in the correct position relative to the parent
 	model = C;
+	std::cout << name << ": " << glm::to_string(model) << std::endl;
+
 	// Actiavte the shader program 
 	glUseProgram(shader);
 
@@ -230,7 +158,7 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
-
+	
 	glUniform3fv(glGetUniformLocation(shader, "k_diffuse"), 1, glm::value_ptr(k_diffuse));
 	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));

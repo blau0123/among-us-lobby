@@ -21,11 +21,13 @@ unsigned int Window::cubemapTextureID;
 // Scene Graph nodes
 Transform* Window::World;
 Transform* Window::GroundToWorld;
-Transform* Window::SphereToWorld;
-Transform* Window::WheelToGround;
+Transform* Window::CylinderToGround;
+Transform* Window::WheelToCylinder;
+std::vector<Transform*> Window::CarsToWheel;
 Geometry* Window::Ground;
-Geometry* Window::SphereGeo;
 Geometry* Window::WheelGeo;
+Geometry* Window::CylinderGeo;
+std::vector<Geometry*> Window::Cars;
 
 // Camera Matrices 
 // Projection matrix:
@@ -35,7 +37,7 @@ glm::mat4 Window::projection;
 glm::mat4 Window::scale;
 
 // View Matrix:
-glm::vec3 Window::eyePos(0, 0, 20);			// Camera position.
+glm::vec3 Window::eyePos(0, 5, 20);			// Camera position.
 glm::vec3 Window::lookAtPoint(0, 0, 0);		// The point we are looking at.
 glm::vec3 Window::upVector(0, 1, 0);		// The up direction of the camera.
 glm::mat4 Window::view = glm::lookAt(Window::eyePos, Window::lookAtPoint, Window::upVector);
@@ -68,13 +70,15 @@ bool Window::initializeSceneGraph() {
 	// Create all transformations
 	World = new Transform();
 	GroundToWorld = new Transform();
-	WheelToGround = new Transform();
+	CylinderToGround = new Transform();
+	WheelToCylinder = new Transform();
 
 	World->addChild(GroundToWorld);
-	GroundToWorld->addChild(WheelToGround);
+	GroundToWorld->addChild(CylinderToGround);
+	CylinderToGround->addChild(WheelToCylinder);
 
 	// Create all Geometry nodes
-	Ground = new Geometry(""); // All objects on screen will be grounded to this Ground node
+	Ground = new Geometry("obj/cube.obj"); // All objects on screen will be grounded to this Ground node
 	Ground->setModelMaterialProperties(
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -82,7 +86,17 @@ bool Window::initializeSceneGraph() {
 		0.0f
 	);
 	GroundToWorld->addChild(Ground);
-	GroundToWorld->transform(glm::translate(glm::vec3(0.0f, -5.0f, 0.0f)));
+	GroundToWorld->transform(glm::translate(glm::vec3(0.0f, -4.0f, 0.0f)));
+
+	CylinderGeo = new Geometry("obj/cylinder.obj");
+	CylinderGeo->setModelMaterialProperties(
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.296648, 0.296648, 0.296648),
+		glm::vec3(0.0, 0.0, 0.8),
+		0.088
+	);
+	CylinderToGround->addChild(CylinderGeo);
+	CylinderToGround->transform(glm::scale(glm::vec3(1.0f, 5.0f, 1.0f)));
 
 	WheelGeo = new Geometry("obj/torus_lr.obj");
 	WheelGeo->setModelMaterialProperties(
@@ -91,8 +105,27 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(0.0, 0.7, 0.0),
 		0.4f
 	);
-	WheelToGround->addChild(WheelGeo);
-	WheelToGround->transform(glm::translate(glm::vec3(0.0f, 10.0f, 0.0f)) * glm::scale(glm::vec3(5.0f, 2.0f, 5.0f)));
+	WheelToCylinder->addChild(WheelGeo);
+	WheelToCylinder->transform(glm::scale(glm::vec3(5.0f, 0.2f, 5.0f)) * glm::translate(glm::vec3(0.0f, 10.0f, 0.0f)));
+
+	// Create vector of cars to attach to the wheel
+	for (int i = 0; i < 1; i++) {
+		Transform* CarToWheel = new Transform();
+		Geometry* CarGeo = new Geometry("obj/bunny.obj");
+		CarGeo->setModelMaterialProperties(
+			glm::vec3(0, 0, 0),
+			glm::vec3(0.296648, 0.296648, 0.296648),
+			glm::vec3(0.0, 0.0, 0.8),
+			0.088
+		);
+		// Transformations will undo the wheel's transformations
+		CarGeo->transform(glm::scale(glm::vec3(0.2f, 1.0f, 0.2f)) * glm::translate(glm::vec3(0.0f, -10.0f, 0.0f)));
+
+		CarToWheel->addChild(CarGeo);
+		WheelToCylinder->addChild(CarToWheel);
+		CarsToWheel.push_back(CarToWheel);
+		Cars.push_back(CarGeo);
+	}
 	return true;
 }
 
@@ -164,12 +197,13 @@ void Window::cleanUp()
 
 	// Deallocate scene graph nodes
 	delete World;
-	delete SphereGeo;
-	delete SphereToWorld;
-	delete Ground;
 	delete GroundToWorld;
+	delete CylinderToGround;
+	delete WheelToCylinder;
+
+	delete CylinderGeo;
+	delete Ground;
 	delete WheelGeo;
-	delete WheelToGround;
 
 	// Delete the shader program.
 	glDeleteProgram(shaderProgram);
