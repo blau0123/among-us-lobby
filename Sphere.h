@@ -12,7 +12,7 @@ class Sphere : public Object
 {
 private:
 	bool isInited;
-	GLuint m_vao, m_vboVertex, m_vboNormals, m_eboIndex;
+	GLuint vao, vboVertex, vboNormals, eboIndex;
 	int lats, longs;
 	int numEltsToDraw;
 	std::vector<glm::vec3> vertices;

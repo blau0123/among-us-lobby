@@ -3,28 +3,30 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 Sphere::Sphere()
 {
 	isInited = false;
-	m_vao = 0;
+	vao = 0;
 	// 1 vbo to store vertices of sphere, 1 vbo to hold normals, 1 ebo to hold indices in order to draw faces
-	m_vboVertex = 0;
-	m_vboNormals = 0;
-	m_eboIndex = 0;
+	vboVertex = 0;
+	vboNormals = 0;
+	eboIndex = 0;
 
 	// Along longitude, have 40 quads, and along latitude, have 40 quads
 	lats = 40;
 	longs = 40;
+	numEltsToDraw = 0;
 }
 
 Sphere::~Sphere()
 {
 	// Delete the VBO, EBO and the VAO.
-	glDeleteBuffers(1, &m_vboNormals);
-	glDeleteBuffers(1, &m_eboIndex);
-	glDeleteBuffers(1, &m_eboIndex);
-	glDeleteVertexArrays(1, &m_vao);
+	glDeleteBuffers(1, &vboNormals);
+	glDeleteBuffers(1, &vboVertex);
+	glDeleteBuffers(1, &eboIndex);
+	glDeleteVertexArrays(1, &vao);
 }
 
 void Sphere::init() {
@@ -116,15 +118,15 @@ void Sphere::init() {
 	// model = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f)) * model;
 
 	// Generate a Vertex Array (VAO) and Vertex Buffer Object (VBO)
-	glGenVertexArrays(1, &m_vao);
-	glGenBuffers(1, &m_vboVertex);
-	glGenBuffers(1, &m_vboNormals);
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vboVertex);
+	glGenBuffers(1, &vboNormals);
 
 	// Bind VAO
-	glBindVertexArray(m_vao);
+	glBindVertexArray(vao);
 
 	// Bind VBO to the bound VAO, and store the point data
-	glBindBuffer(GL_ARRAY_BUFFER, m_vboVertex);
+	glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices1.size(), &vertices1[0], GL_STATIC_DRAW);
 
@@ -134,7 +136,7 @@ void Sphere::init() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	// Bind VBO2 to the bound VAO, and store the vertex norm data
-	glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
+	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * norms1.size(), &norms1[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
@@ -143,8 +145,8 @@ void Sphere::init() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
-	glGenBuffers(1, &m_eboIndex);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboIndex);
+	glGenBuffers(1, &eboIndex);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboIndex);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLuint) * indices1.size(), &indices1[0], GL_STATIC_DRAW);
 
 	// Unbind the VBO/VAO
@@ -174,7 +176,7 @@ void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm:
 	glUniform1i(glGetUniformLocation(shader, "skybox"), 0);
 
 	// Bind the VAO
-	glBindVertexArray(m_vao);
+	glBindVertexArray(vao);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureID);
@@ -182,7 +184,7 @@ void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm:
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboIndex);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboIndex);
 	glDrawElements(GL_QUADS, numEltsToDraw, GL_UNSIGNED_INT, NULL);
 
 	// Unbind the VAO and shader program

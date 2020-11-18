@@ -26,20 +26,23 @@ Transform* Window::translatePole;
 Transform* Window::scalePole;
 Transform* Window::translateWheel;
 Transform* Window::scaleWheel;
-Transform* Window::rotateSupportPole;
+Transform* Window::rotateSupportPoleX;
+Transform* Window::rotateSupportPoleZ;
 Transform* Window::rotateCar;
 Transform* Window::scaleAttachPole;
+Transform* Window::scaleSupportPoleLeft;
+Transform* Window::scaleSupportPoleRight;
 std::vector<Transform*> Window::rotateCars;
 std::vector<Transform*> Window::translateCars;
 
 Geometry* Window::ground;
 Geometry* Window::pole;
 Geometry* Window::wheel;
-Geometry* Window::supportPole;
 Geometry* Window::car;
 Geometry* Window::car2;
 std::vector<Geometry*> Window::cars;
 std::vector<Geometry*> Window::attachPoles;
+std::vector<Geometry*> Window::supportPoles;
 
 // Camera Matrices 
 // Projection matrix:
@@ -87,17 +90,23 @@ bool Window::initializeSceneGraph() {
 	scalePole = new Transform();
 	translateWheel = new Transform();
 	scaleWheel = new Transform();
-	rotateSupportPole = new Transform();
+	scaleSupportPoleLeft = new Transform();
+	scaleSupportPoleRight = new Transform();
+	rotateSupportPoleX = new Transform();
 	//translateCar = new Transform();
 	rotateCar = new Transform();
 	scaleAttachPole = new Transform();
+
 	World->addChild(translateGround);
 	translateGround->addChild(translatePole);
 	translateGround->addChild(translateGroundBack);
 	translatePole->addChild(scalePole);
 	translatePole->addChild(translateWheel);
 	translateWheel->addChild(scaleWheel);
-	translateWheel->addChild(rotateSupportPole);
+	translateWheel->addChild(scaleSupportPoleLeft);
+	translateWheel->addChild(scaleSupportPoleRight);
+	scaleSupportPoleLeft->addChild(rotateSupportPoleX);
+	scaleSupportPoleRight->addChild(rotateSupportPoleX);
 	//translateWheel->addChild(translateCar);
 	//translateCar->addChild(rotateCar);
 
@@ -123,22 +132,17 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(1.0f, 0.5f, 0.31f),
 		0.1f
 	);
-	supportPole = new Geometry("obj/cylinder.obj");
-	supportPole->setModelMaterialProperties(
-		glm::vec3(0.75164, 0.60648, 0.22648),
-		glm::vec3(0, 0, 0),
-		glm::vec3(0.0, 0.7, 0.0),
-		0.4f
-	);
+
 	translateGroundBack->addChild(ground);
 	scalePole->addChild(pole);
 	scaleWheel->addChild(wheel);
-	rotateSupportPole->addChild(supportPole);
 
 	// Create 5 cars that will be on the outskirt of the wheel
 	createRideCars();
 	// Create poles that will attach each car to the torus (wheel)
 	createAttachPoles();
+	// Create the support poles in between pole and wheel
+	createSupportPoles();
 
 	// Add transforms to each Transformation node
 	translateGround->transform(glm::translate(glm::vec3(0.0f, -7.0f, 0.0f)));
@@ -146,8 +150,36 @@ bool Window::initializeSceneGraph() {
 	scalePole->transform(glm::scale(glm::vec3(1.0f, 7.0f, 1.0f)));
 	translateWheel->transform(glm::translate(glm::vec3(0.0f, 14.0f, 0.0f)));
 	scaleWheel->transform(glm::scale(glm::vec3(6.0f, 1.7f, 6.0f)));
-	rotateSupportPole->transform(glm::rotate(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+	rotateSupportPoleX->transform(glm::rotate(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
 	scaleAttachPole->transform(glm::scale(glm::vec3(0.15f, 2.0f, 0.15f)));
+
+	return true;
+}
+
+bool Window::createSupportPoles() {
+	Geometry* supportPoleLeft = new Geometry("obj/cylinder.obj");
+	supportPoleLeft->setModelMaterialProperties(
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.0, 0.7, 0.0),
+		0.4f
+	);
+
+	Geometry* supportPoleRight = new Geometry("obj/cylinder.obj");
+	supportPoleRight->setModelMaterialProperties(
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.0, 0.7, 0.0),
+		0.4f
+	);
+
+	scaleSupportPoleLeft->transform(glm::scale(glm::vec3(3.0f, 0.3f, 0.3f)));
+	scaleSupportPoleRight->transform(glm::scale(glm::vec3(-3.0f, 0.3f, 0.3f)));
+
+	rotateSupportPoleX->addChild(supportPoleLeft);
+	rotateSupportPoleX->addChild(supportPoleRight);
+	supportPoles.push_back(supportPoleLeft);
+	supportPoles.push_back(supportPoleRight);
 
 	return true;
 }
@@ -303,6 +335,10 @@ void Window::cleanUp()
 	delete translateWheel;
 	delete scaleWheel;
 	delete rotateCar;
+	delete rotateSupportPoleX;
+	delete rotateSupportPoleZ;
+	delete scaleSupportPoleLeft;
+	delete scaleSupportPoleRight;
 	delete scaleAttachPole;
 
 	delete ground;
@@ -316,6 +352,10 @@ void Window::cleanUp()
 		delete translateCars[i];
 		delete cars[i];
 		delete attachPoles[i];
+	}
+
+	for (int i = 0; i < supportPoles.size(); i++) {
+		delete supportPoles[i];
 	}
 
 	// Delete the shader program.
@@ -410,9 +450,9 @@ void Window::displayCallback(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	cube->draw(view, projection, skyBoxShaderProgram);
 	// Use Phong illumination shader for Scene Graph
-	World->draw(glm::mat4(1), view, projection, shaderProgram);
+	// World->draw(glm::mat4(1), view, projection, shaderProgram);
 	lightSphere->draw(view, projection, shaderProgram);
-	// sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
+	sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
 	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);
 	// If the current render mode is 1, show the light source and if not (normal shading), don't show

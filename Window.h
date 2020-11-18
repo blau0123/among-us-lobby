@@ -54,7 +54,10 @@ public:
 	static Transform* scalePole;
 	static Transform* translateWheel;
 	static Transform* scaleWheel;
-	static Transform* rotateSupportPole;
+	static Transform* scaleSupportPoleLeft;
+	static Transform* scaleSupportPoleRight;
+	static Transform* rotateSupportPoleX;
+	static Transform* rotateSupportPoleZ;
 	static Transform* rotateCar;
 	static Transform* scaleAttachPole;
 	static std::vector<Transform*> translateCars;
@@ -63,11 +66,11 @@ public:
 	static Geometry* ground;
 	static Geometry* pole;
 	static Geometry* wheel;
-	static Geometry* supportPole;
 	static Geometry* car;
 	static Geometry* car2;
 	static std::vector<Geometry*> cars;
 	static std::vector<Geometry*> attachPoles;
+	static std::vector<Geometry*> supportPoles;
 
 	// Camera Matrices
 	static glm::mat4 projection;
@@ -84,6 +87,7 @@ public:
 
 	static bool createRideCars();
 	static bool createAttachPoles();
+	static bool createSupportPoles();
 
 	// Constructors and Destructors
 	static bool initializeProgram();

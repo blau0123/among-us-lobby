@@ -13,8 +13,8 @@ uniform mat4 projection;
 
 void main() {
 	// Convert normal and position vectors to world coordinates
-	Normal = mat3(transpose(inverse(model))) * aNormal;
-	Position = vec3(model * vec4(aPos, 1.0));
+	//Normal = mat3(transpose(inverse(model))) * aNormal;
+	//Position = vec3(model * vec4(aPos, 1.0));
 	// Calc the transformed position of this vertex in world coordinates
 	gl_Position = projection * view * model * vec4(Position, 1.0);
 }

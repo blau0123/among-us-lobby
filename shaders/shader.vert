@@ -26,7 +26,6 @@ void main()
 {
     // OpenGL maintains the D matrix so you only need to multiply by P, V (aka C inverse), and M
     gl_Position = projection * view * model * vec4(position, 1.0);
-
     sampleExtraOutput = 1.0f;
 
     // Convert the positions and normals to world coordinates, then output them to the fragment shader
