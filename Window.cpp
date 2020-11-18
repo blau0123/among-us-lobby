@@ -26,16 +26,20 @@ Transform* Window::translatePole;
 Transform* Window::scalePole;
 Transform* Window::translateWheel;
 Transform* Window::scaleWheel;
-Transform* Window::translateCar;
+Transform* Window::rotateSupportPole;
 Transform* Window::rotateCar;
+Transform* Window::scaleAttachPole;
 std::vector<Transform*> Window::rotateCars;
+std::vector<Transform*> Window::translateCars;
 
 Geometry* Window::ground;
 Geometry* Window::pole;
 Geometry* Window::wheel;
+Geometry* Window::supportPole;
 Geometry* Window::car;
 Geometry* Window::car2;
 std::vector<Geometry*> Window::cars;
+std::vector<Geometry*> Window::attachPoles;
 
 // Camera Matrices 
 // Projection matrix:
@@ -83,16 +87,19 @@ bool Window::initializeSceneGraph() {
 	scalePole = new Transform();
 	translateWheel = new Transform();
 	scaleWheel = new Transform();
-	translateCar = new Transform();
+	rotateSupportPole = new Transform();
+	//translateCar = new Transform();
 	rotateCar = new Transform();
+	scaleAttachPole = new Transform();
 	World->addChild(translateGround);
 	translateGround->addChild(translatePole);
 	translateGround->addChild(translateGroundBack);
 	translatePole->addChild(scalePole);
 	translatePole->addChild(translateWheel);
 	translateWheel->addChild(scaleWheel);
-	translateWheel->addChild(translateCar);
-	translateCar->addChild(rotateCar);
+	translateWheel->addChild(rotateSupportPole);
+	//translateWheel->addChild(translateCar);
+	//translateCar->addChild(rotateCar);
 
 	// Create all the Geometries
 	ground = new Geometry("obj/cube.obj");
@@ -116,7 +123,50 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(1.0f, 0.5f, 0.31f),
 		0.1f
 	);
-	/*
+	supportPole = new Geometry("obj/cylinder.obj");
+	supportPole->setModelMaterialProperties(
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.0, 0.7, 0.0),
+		0.4f
+	);
+	translateGroundBack->addChild(ground);
+	scalePole->addChild(pole);
+	scaleWheel->addChild(wheel);
+	rotateSupportPole->addChild(supportPole);
+
+	// Create 5 cars that will be on the outskirt of the wheel
+	createRideCars();
+	// Create poles that will attach each car to the torus (wheel)
+	createAttachPoles();
+
+	// Add transforms to each Transformation node
+	translateGround->transform(glm::translate(glm::vec3(0.0f, -7.0f, 0.0f)));
+	translateGroundBack->transform(glm::translate(glm::vec3(0.0f, 0.0f, -7.0f)));
+	scalePole->transform(glm::scale(glm::vec3(1.0f, 7.0f, 1.0f)));
+	translateWheel->transform(glm::translate(glm::vec3(0.0f, 14.0f, 0.0f)));
+	scaleWheel->transform(glm::scale(glm::vec3(6.0f, 1.7f, 6.0f)));
+	rotateSupportPole->transform(glm::rotate(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+	scaleAttachPole->transform(glm::scale(glm::vec3(0.15f, 2.0f, 0.15f)));
+
+	return true;
+}
+
+bool Window::createRideCars() {
+	Geometry* car = new Geometry("obj/bunny.obj");
+	car->setModelMaterialProperties(
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.0, 0.7, 0.0),
+		0.4f
+	);
+	Transform* translateCar = new Transform();
+	translateCar->addChild(car);
+	translateCar->transform(glm::translate(glm::vec3(6.0f, -4.0f, 0.0f)));
+	translateWheel->addChild(translateCar);
+	translateCars.push_back(translateCar);
+	cars.push_back(car);
+
 	car = new Geometry("obj/bunny.obj");
 	car->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
@@ -124,44 +174,56 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(0.0, 0.7, 0.0),
 		0.4f
 	);
-	car2 = new Geometry("obj/bunny.obj");
-	car2->setModelMaterialProperties(
+	translateCar = new Transform();
+	translateCar->addChild(car);
+	translateCar->transform(glm::translate(glm::vec3(0.0f, -4.0f, 6.0f)));
+	translateWheel->addChild(translateCar);
+	translateCars.push_back(translateCar);
+	cars.push_back(car);
+
+	car = new Geometry("obj/bunny.obj");
+	car->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.0, 0.7, 0.0),
 		0.4f
 	);
-	rotateCar->addChild(car);
-	rotateCar->addChild(car2);
-	*/
-	translateGroundBack->addChild(ground);
-	scalePole->addChild(pole);
-	scaleWheel->addChild(wheel);
+	translateCar = new Transform();
+	translateCar->addChild(car);
+	translateCar->transform(glm::translate(glm::vec3(-6.0f, -4.0f, 0.0f)));
+	translateWheel->addChild(translateCar);
+	translateCars.push_back(translateCar);
+	cars.push_back(car);
 
-	for (int i = 0; i < 2; i++) {
-		Geometry* c = new Geometry("obj/bunny.obj");
-		c->setModelMaterialProperties(
+	car = new Geometry("obj/bunny.obj");
+	car->setModelMaterialProperties(
+		glm::vec3(0.75164, 0.60648, 0.22648),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0.0, 0.7, 0.0),
+		0.4f
+	);
+	translateCar = new Transform();
+	translateCar->addChild(car);
+	translateCar->transform(glm::translate(glm::vec3(0.0f, -4.0f, -6.0f)));
+	translateWheel->addChild(translateCar);
+	translateCars.push_back(translateCar);
+	cars.push_back(car);
+	return true;
+}
+
+bool Window::createAttachPoles() {
+	for (int i = 0; i < translateCars.size(); i++) {
+		Geometry* attachPole = new Geometry("obj/cylinder.obj");
+		attachPole->setModelMaterialProperties(
 			glm::vec3(0.75164, 0.60648, 0.22648),
 			glm::vec3(0, 0, 0),
 			glm::vec3(0.0, 0.7, 0.0),
 			0.4f
 		);
-		Transform* r = new Transform();
-		r->transform(glm::rotate(glm::radians(90.0f * i), glm::vec3(0.0f, 1.0f, 0.0f)));
-		translateCar->addChild(r);
-		r->addChild(c);
-
-		rotateCars.push_back(r);
-		cars.push_back(c);
+		scaleAttachPole->addChild(attachPole);
+		translateCars[i]->addChild(scaleAttachPole);
+		attachPoles.push_back(attachPole);
 	}
-
-	// Add transforms to each Transformation node
-	translateGround->transform(glm::translate(glm::vec3(0.0f, -7.0f, 0.0f)));
-	translateGroundBack->transform(glm::translate(glm::vec3(0.0f, 0.0f, -7.0f)));
-	scalePole->transform(glm::scale(glm::vec3(1.0f, 7.0f, 1.0f)));
-	translateWheel->transform(glm::translate(glm::vec3(0.0f, 14.0f, 0.0f)));
-	scaleWheel->transform(glm::scale(glm::vec3(5.0f, 1.7f, 5.0f)));
-	translateCar->transform(glm::translate(glm::vec3(5.0f, -2.0f, 0.0f)));
 
 	return true;
 }
@@ -240,8 +302,8 @@ void Window::cleanUp()
 	delete scalePole;
 	delete translateWheel;
 	delete scaleWheel;
-	delete translateCar;
 	delete rotateCar;
+	delete scaleAttachPole;
 
 	delete ground;
 	delete pole;
@@ -251,7 +313,9 @@ void Window::cleanUp()
 
 	for (int i = 0; i < rotateCars.size(); i++) {
 		delete rotateCars[i];
+		delete translateCars[i];
 		delete cars[i];
+		delete attachPoles[i];
 	}
 
 	// Delete the shader program.

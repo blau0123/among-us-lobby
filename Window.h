@@ -33,7 +33,20 @@ public:
 	static PointCloud* bearPoints;
 	static LightSource* lightSphere;
 
-	// Scene Graph nodes
+	/* Scene Graph nodes
+		World -- translateGround -- translatePole -- translateWheel -- scaleSupport -- (translateSupport -- rotateSupportAboutPole -- support) repeat for each support pole
+					|				  |					|		\
+					|				  |					|		 \
+					|				  |					|		   -- translateCar -- car
+					|				  |					|						\
+					|				  |					|						  -- scaleAttachToWheel -- attachToWheel
+					|				  |					|
+					|				  |					  -- scaleWheel -- wheel
+					|				  | 
+					|					-- scalePole -- pole
+					|
+					 -- translateGroundBack -- ground
+	*/
 	static Transform* World;
 	static Transform* translateGround;
 	static Transform* translateGroundBack;
@@ -41,27 +54,20 @@ public:
 	static Transform* scalePole;
 	static Transform* translateWheel;
 	static Transform* scaleWheel;
-	static Transform* translateCar;
+	static Transform* rotateSupportPole;
 	static Transform* rotateCar;
+	static Transform* scaleAttachPole;
+	static std::vector<Transform*> translateCars;
 	static std::vector<Transform*> rotateCars;
 
 	static Geometry* ground;
 	static Geometry* pole;
 	static Geometry* wheel;
+	static Geometry* supportPole;
 	static Geometry* car;
 	static Geometry* car2;
 	static std::vector<Geometry*> cars;
-	/*
-	static Transform* GroundToWorld;
-	static Transform* CylinderToGround;
-	static Transform* WheelToCylinder;
-	static std::vector<Transform*> CarsToWheel;
-
-	static Geometry* Ground;
-	static Geometry* WheelGeo;
-	static Geometry* CylinderGeo;
-	static std::vector<Geometry*> Cars;
-	*/
+	static std::vector<Geometry*> attachPoles;
 
 	// Camera Matrices
 	static glm::mat4 projection;
@@ -75,6 +81,9 @@ public:
 	static GLuint sphereShaderProgram;
 
 	static unsigned int cubemapTextureID;
+
+	static bool createRideCars();
+	static bool createAttachPoles();
 
 	// Constructors and Destructors
 	static bool initializeProgram();
