@@ -56,6 +56,8 @@ public:
 	static Transform* scaleWheel;
 	static Transform* scaleSupportPoleLeft;
 	static Transform* scaleSupportPoleRight;
+	static Transform* scaleSupportPoleFront;
+	static Transform* scaleSupportPoleBack;
 	static Transform* rotateSupportPoleX;
 	static Transform* rotateSupportPoleZ;
 	static Transform* rotateCar;

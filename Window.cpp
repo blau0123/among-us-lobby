@@ -32,6 +32,8 @@ Transform* Window::rotateCar;
 Transform* Window::scaleAttachPole;
 Transform* Window::scaleSupportPoleLeft;
 Transform* Window::scaleSupportPoleRight;
+Transform* Window::scaleSupportPoleFront;
+Transform* Window::scaleSupportPoleBack;
 std::vector<Transform*> Window::rotateCars;
 std::vector<Transform*> Window::translateCars;
 
@@ -92,7 +94,10 @@ bool Window::initializeSceneGraph() {
 	scaleWheel = new Transform();
 	scaleSupportPoleLeft = new Transform();
 	scaleSupportPoleRight = new Transform();
+	scaleSupportPoleFront = new Transform();
+	scaleSupportPoleBack = new Transform();
 	rotateSupportPoleX = new Transform();
+	rotateSupportPoleZ = new Transform();
 	//translateCar = new Transform();
 	rotateCar = new Transform();
 	scaleAttachPole = new Transform();
@@ -105,10 +110,12 @@ bool Window::initializeSceneGraph() {
 	translateWheel->addChild(scaleWheel);
 	translateWheel->addChild(scaleSupportPoleLeft);
 	translateWheel->addChild(scaleSupportPoleRight);
+	translateWheel->addChild(scaleSupportPoleFront);
+	translateWheel->addChild(scaleSupportPoleBack);
 	scaleSupportPoleLeft->addChild(rotateSupportPoleX);
 	scaleSupportPoleRight->addChild(rotateSupportPoleX);
-	//translateWheel->addChild(translateCar);
-	//translateCar->addChild(rotateCar);
+	scaleSupportPoleFront->addChild(rotateSupportPoleZ);
+	scaleSupportPoleBack->addChild(rotateSupportPoleZ);
 
 	// Create all the Geometries
 	ground = new Geometry("obj/cube.obj");
@@ -151,6 +158,7 @@ bool Window::initializeSceneGraph() {
 	translateWheel->transform(glm::translate(glm::vec3(0.0f, 14.0f, 0.0f)));
 	scaleWheel->transform(glm::scale(glm::vec3(6.0f, 1.7f, 6.0f)));
 	rotateSupportPoleX->transform(glm::rotate(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+	rotateSupportPoleZ->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 	scaleAttachPole->transform(glm::scale(glm::vec3(0.15f, 2.0f, 0.15f)));
 
 	return true;
@@ -159,17 +167,18 @@ bool Window::initializeSceneGraph() {
 bool Window::createSupportPoles() {
 	Geometry* supportPoleLeft = new Geometry("obj/cylinder.obj");
 	supportPoleLeft->setModelMaterialProperties(
-		glm::vec3(0.75164, 0.60648, 0.22648),
-		glm::vec3(0, 0, 0),
-		glm::vec3(0.0, 0.7, 0.0),
+		// diffuse, specular, ambient
+		glm::vec3(0.50754, 0.50754, 0.50754),
+		glm::vec3(0.508273, 0.508273, 0.508273),
+		glm::vec3(0.19225, 0.19225, 0.19225),
 		0.4f
 	);
-
 	Geometry* supportPoleRight = new Geometry("obj/cylinder.obj");
 	supportPoleRight->setModelMaterialProperties(
-		glm::vec3(0.75164, 0.60648, 0.22648),
-		glm::vec3(0, 0, 0),
-		glm::vec3(0.0, 0.7, 0.0),
+		// diffuse, specular, ambient
+		glm::vec3(0.50754, 0.50754, 0.50754),
+		glm::vec3(0.508273, 0.508273, 0.508273),
+		glm::vec3(0.19225, 0.19225, 0.19225),
 		0.4f
 	);
 
@@ -178,8 +187,32 @@ bool Window::createSupportPoles() {
 
 	rotateSupportPoleX->addChild(supportPoleLeft);
 	rotateSupportPoleX->addChild(supportPoleRight);
+
+	Geometry* supportPoleFront = new Geometry("obj/cylinder.obj");
+	supportPoleFront->setModelMaterialProperties(
+		// diffuse, specular, ambient
+		glm::vec3(0.50754, 0.50754, 0.50754),
+		glm::vec3(0.508273, 0.508273, 0.508273),
+		glm::vec3(0.19225, 0.19225, 0.19225),
+		0.4f
+	);
+	Geometry* supportPoleBack = new Geometry("obj/cylinder.obj");
+	supportPoleBack->setModelMaterialProperties(
+		// diffuse, specular, ambient
+		glm::vec3(0.50754, 0.50754, 0.50754),
+		glm::vec3(0.508273, 0.508273, 0.508273),
+		glm::vec3(0.19225, 0.19225, 0.19225),
+		0.4f
+	);
+	rotateSupportPoleZ->addChild(supportPoleFront);
+	rotateSupportPoleZ->addChild(supportPoleBack);
+	scaleSupportPoleFront->transform(glm::scale(glm::vec3(0.3f, 0.3f, 3.0f)));
+	scaleSupportPoleBack->transform(glm::scale(glm::vec3(0.3f, 0.3f, -3.0f)));
+
 	supportPoles.push_back(supportPoleLeft);
 	supportPoles.push_back(supportPoleRight);
+	supportPoles.push_back(supportPoleFront);
+	supportPoles.push_back(supportPoleBack);
 
 	return true;
 }
@@ -247,9 +280,10 @@ bool Window::createAttachPoles() {
 	for (int i = 0; i < translateCars.size(); i++) {
 		Geometry* attachPole = new Geometry("obj/cylinder.obj");
 		attachPole->setModelMaterialProperties(
-			glm::vec3(0.75164, 0.60648, 0.22648),
-			glm::vec3(0, 0, 0),
-			glm::vec3(0.0, 0.7, 0.0),
+			// diffuse, specular, ambient
+			glm::vec3(0.50754, 0.50754, 0.50754),
+			glm::vec3(0.508273, 0.508273, 0.508273),
+			glm::vec3(0.19225, 0.19225, 0.19225),
 			0.4f
 		);
 		scaleAttachPole->addChild(attachPole);
@@ -339,6 +373,8 @@ void Window::cleanUp()
 	delete rotateSupportPoleZ;
 	delete scaleSupportPoleLeft;
 	delete scaleSupportPoleRight;
+	delete scaleSupportPoleFront;
+	delete scaleSupportPoleBack;
 	delete scaleAttachPole;
 
 	delete ground;
@@ -450,9 +486,9 @@ void Window::displayCallback(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	cube->draw(view, projection, skyBoxShaderProgram);
 	// Use Phong illumination shader for Scene Graph
-	// World->draw(glm::mat4(1), view, projection, shaderProgram);
+	World->draw(glm::mat4(1), view, projection, shaderProgram);
 	lightSphere->draw(view, projection, shaderProgram);
-	sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
+	// sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
 	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);
 	// If the current render mode is 1, show the light source and if not (normal shading), don't show
