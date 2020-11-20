@@ -13,6 +13,7 @@ int Window::anim3 = 1;
 
 float Window::counter = 14.0f;
 int Window::upOrDown = -1;
+int Window::moving = -1;
 
 // Objects to Render
 Cube * Window::cube;
@@ -541,6 +542,10 @@ void Window::displayCallback(GLFWwindow* window)
 	// Use Phong illumination shader for Scene Graph
 	World->draw(glm::mat4(1), view, projection, shaderProgram);
 	lightSphere->draw(view, projection, shaderProgram);
+	if (moving != -1) {
+		// The user is holding a key to move/turn the camera
+		updateCameraIfKeyHold();
+	}
 	//sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
 	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);
@@ -554,6 +559,58 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Swap buffers.
 	glfwSwapBuffers(window);
+}
+
+void Window::updateCameraIfKeyHold() {
+	switch (moving) {
+	case 0:
+		// move forward
+		eyePos = glm::translate(glm::vec3(0.0f, 0.0f, -0.05f)) * glm::vec4(eyePos, 1.0f);
+		lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, -0.05f)) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new eyePos
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+		break;
+	case 1:
+		// moving backward
+		eyePos = glm::translate(glm::vec3(0.0f, 0.0f, 0.05f)) * glm::vec4(eyePos, 1.0f);
+		lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, 0.05f)) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new eyePos
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+		break;
+	case 2:
+		// Move up
+		eyePos = glm::translate(glm::vec3(0.0f, 0.05f, 0.0f)) * glm::vec4(eyePos, 1.0f);
+		lookAtPoint = glm::translate(glm::vec3(0.0f, 0.05f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new eyePos
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+		break;
+	case 3:
+		// Move down
+		// If we are at ground level, don't go down any more (don't go past ground)
+		if (eyePos.y <= 0)
+			break;
+		eyePos = glm::translate(glm::vec3(0.0f, -0.05f, 0.0f)) * glm::vec4(eyePos, 1.0f);
+		lookAtPoint = glm::translate(glm::vec3(0.0f, -0.05f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new eyePos
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+		break;
+	case 4:
+		// Turn left
+		lookAtPoint = glm::translate(-eyePos) * glm::vec4(lookAtPoint, 1.0f);
+		lookAtPoint = glm::rotate(glm::radians(0.1f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+		lookAtPoint = glm::translate(eyePos) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new lookat
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+		break;
+	case 5: 
+		// Turn right
+		lookAtPoint = glm::translate(-eyePos) * glm::vec4(lookAtPoint, 1.0f);
+		lookAtPoint = glm::rotate(glm::radians(-0.1f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+		lookAtPoint = glm::translate(eyePos) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new lookat
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+		break;
+	}
 }
 
 void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -647,51 +704,28 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			//((PointCloud*)currObj)->updatePointSize(sizeIncrement);
 			// Turn left -- translate lookAtPoint to make eyePos = it's origin, then rotate it about origin (eyePos), then
 			// translate back to original position
-			lookAtPoint = glm::translate(-eyePos) * glm::vec4(lookAtPoint, 1.0f);
-			lookAtPoint = glm::rotate(glm::radians(0.1f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
-			lookAtPoint = glm::translate(eyePos) * glm::vec4(lookAtPoint, 1.0f);
-			// Update view vector with new lookat
-			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			moving = 4;
 			break;
 		case GLFW_KEY_R:
 			// Turn right -- translate lookAtPoint to make eyePos = it's origin, then rotate it about origin (eyePos), then
 			// translate back to original position			
-			lookAtPoint = glm::translate(-eyePos) * glm::vec4(lookAtPoint, 1.0f);
-			lookAtPoint = glm::rotate(glm::radians(-0.1f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
-			lookAtPoint = glm::translate(eyePos) * glm::vec4(lookAtPoint, 1.0f);
-			// Update view vector with new lookat
-			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			moving = 5;
 			break;
 		case GLFW_KEY_W:
 			// Move forward
-			eyePos = glm::translate(glm::vec3(0.0f, 0.0f, -1.0f)) * glm::vec4(eyePos, 1.0f);
-			lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, -1.0f)) * glm::vec4(lookAtPoint, 1.0f);
-			// Update view vector with new eyePos
-			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			moving = 0;
 			break;
 		case GLFW_KEY_A:
 			// Move up
-			eyePos = glm::translate(glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(eyePos, 1.0f);
-			lookAtPoint = glm::translate(glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
-			// Update view vector with new eyePos
-			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			moving = 2;
 			break;
 		case GLFW_KEY_S:
 			// Move backward
-			eyePos = glm::translate(glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(eyePos, 1.0f);
-			lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(lookAtPoint, 1.0f);
-			// Update view vector with new eyePos
-			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			moving = 1;
 			break;
 		case GLFW_KEY_D:
 			// Move down
-			// If we are at ground level, don't go down any more (don't go past ground)
-			if (eyePos.y <= 0)
-				break;
-			eyePos = glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::vec4(eyePos, 1.0f);
-			lookAtPoint = glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
-			// Update view vector with new eyePos
-			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			moving = 3;
 			break;
 		case GLFW_KEY_N:
 			// Switch rendering mode between normal coloring and Phong illumination model
@@ -700,5 +734,9 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 		default:
 			break;
 		}
+	}
+	if (action == GLFW_RELEASE) {
+		// User has lifted key, so stop moving
+		moving = -1;
 	}
 }

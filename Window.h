@@ -34,6 +34,16 @@ public:
 	static float counter;
 	// If -1, then is currently going down, if 1, then is currently going up
 	static int upOrDown;
+	/*
+	moving == -1 --> not moving
+	moving == 0 --> forward
+	moving == 1 --> backward
+	moving == 2 --> up
+	moving == 3 --> down
+	moving == 4 --> turn left
+	moving == 5 --> turn right
+	*/
+	static int moving;
 
 	// Objects to Render
 	static Cube* cube;
@@ -116,6 +126,8 @@ public:
 	// Draw and Update functions
 	static void idleCallback();
 	static void displayCallback(GLFWwindow*);
+
+	static void updateCameraIfKeyHold();
 
 	// Callbacks
 	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
