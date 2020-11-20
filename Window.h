@@ -30,6 +30,10 @@ public:
 	static int anim1;
 	static int anim2;
 	static int anim3;
+	// Determine whether the wheel should be translating up or down. Max = 14, min = 5
+	static float counter;
+	// If -1, then is currently going down, if 1, then is currently going up
+	static int upOrDown;
 
 	// Objects to Render
 	static Cube* cube;

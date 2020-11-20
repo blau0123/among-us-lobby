@@ -11,6 +11,9 @@ int Window::anim1 = 1;
 int Window::anim2 = 1;
 int Window::anim3 = 1;
 
+float Window::counter = 14.0f;
+int Window::upOrDown = -1;
+
 // Objects to Render
 Cube * Window::cube;
 Sphere* Window::sphere;
@@ -169,6 +172,7 @@ bool Window::initializeSceneGraph() {
 	translateGroundBack->transform(glm::translate(glm::vec3(0.0f, 0.0f, -7.0f)));
 	scalePole->transform(glm::scale(glm::vec3(1.0f, 7.0f, 1.0f)));
 	translateWheel->transform(glm::translate(glm::vec3(0.0f, 14.0f, 0.0f)));
+	//translateWheel->transform(glm::translate(glm::vec3(0.0f, 5.0f, 0.0f)));
 	scaleWheel->transform(glm::scale(glm::vec3(6.0f, 1.7f, 6.0f)));
 	rotateSupportPoleX->transform(glm::rotate(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
 	rotateSupportPoleZ->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
@@ -504,8 +508,23 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 void Window::idleCallback()
 {
 	// Perform any necessary updates here 
-	// if (anim1)
-	//translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, -0.01f, 0.0f)));
+	if (anim1) {
+		if (upOrDown == -1) {
+			translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, -0.01f, 0.0f)));
+			counter -= 0.01f;
+			// Wheel has reached min point, so now go back down
+			if (counter <= 5.0f)
+				upOrDown = 1;
+		}
+		else if (upOrDown == 1) {
+			translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, 0.01f, 0.0f)));
+			counter += 0.01f;
+			// Wheel has reached max point, so now go back down
+			if (counter >= 14.0f) {
+				upOrDown = -1;
+			}
+		}
+	}
 	if (anim2)
 		rotateWheel->transform(glm::rotate(glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f)));
 	if (anim3) {
@@ -522,7 +541,7 @@ void Window::displayCallback(GLFWwindow* window)
 	// Use Phong illumination shader for Scene Graph
 	World->draw(glm::mat4(1), view, projection, shaderProgram);
 	lightSphere->draw(view, projection, shaderProgram);
-	// sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
+	//sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
 	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);
 	// If the current render mode is 1, show the light source and if not (normal shading), don't show
