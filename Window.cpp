@@ -644,7 +644,23 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			break;
 		case GLFW_KEY_L:
 			// Increase point size
-			((PointCloud*)currObj)->updatePointSize(sizeIncrement);
+			//((PointCloud*)currObj)->updatePointSize(sizeIncrement);
+			// Turn left -- translate lookAtPoint to make eyePos = it's origin, then rotate it about origin (eyePos), then
+			// translate back to original position
+			lookAtPoint = glm::translate(-eyePos) * glm::vec4(lookAtPoint, 1.0f);
+			lookAtPoint = glm::rotate(glm::radians(0.1f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+			lookAtPoint = glm::translate(eyePos) * glm::vec4(lookAtPoint, 1.0f);
+			// Update view vector with new lookat
+			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			break;
+		case GLFW_KEY_R:
+			// Turn right -- translate lookAtPoint to make eyePos = it's origin, then rotate it about origin (eyePos), then
+			// translate back to original position			
+			lookAtPoint = glm::translate(-eyePos) * glm::vec4(lookAtPoint, 1.0f);
+			lookAtPoint = glm::rotate(glm::radians(-0.1f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+			lookAtPoint = glm::translate(eyePos) * glm::vec4(lookAtPoint, 1.0f);
+			// Update view vector with new lookat
+			view = glm::lookAt(eyePos, lookAtPoint, upVector);
 			break;
 		case GLFW_KEY_W:
 			// Move forward
@@ -652,7 +668,6 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, -1.0f)) * glm::vec4(lookAtPoint, 1.0f);
 			// Update view vector with new eyePos
 			view = glm::lookAt(eyePos, lookAtPoint, upVector);
-			std::cout << glm::to_string(eyePos) << std::endl;
 			break;
 		case GLFW_KEY_A:
 			// Move up
