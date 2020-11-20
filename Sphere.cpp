@@ -31,9 +31,6 @@ Sphere::~Sphere()
 
 void Sphere::init() {
 	int i, j;
-	std::vector<GLfloat> vertices1;
-	std::vector<GLuint> indices1;
-	std::vector<GLfloat> norms1;
 	int indicator = 0;
 
 	for (i = 0; i <= lats; i++) {
@@ -60,28 +57,28 @@ void Sphere::init() {
 
 			y1 -> *		* 
 			*/
-			vertices1.push_back(x * zr1);
-			vertices1.push_back(y * zr1);
-			vertices1.push_back(z1);
-			indices1.push_back(indicator);
+			vertices.push_back(x * zr1);
+			vertices.push_back(y * zr1);
+			vertices.push_back(z1);
+			indices.push_back(indicator);
 			indicator++;
 
-			vertices1.push_back(x * zr0);
-			vertices1.push_back(y * zr0);
-			vertices1.push_back(z0);
-			indices1.push_back(indicator);
+			vertices.push_back(x * zr0);
+			vertices.push_back(y * zr0);
+			vertices.push_back(z0);
+			indices.push_back(indicator);
 			indicator++;
 
-			vertices1.push_back(x1 * zr0);
-			vertices1.push_back(y1 * zr0);
-			vertices1.push_back(z0);
-			indices1.push_back(indicator);
+			vertices.push_back(x1 * zr0);
+			vertices.push_back(y1 * zr0);
+			vertices.push_back(z0);
+			indices.push_back(indicator);
 			indicator++;
 
-			vertices1.push_back(x1 * zr1);
-			vertices1.push_back(y1 * zr1);
-			vertices1.push_back(z1);
-			indices1.push_back(indicator);
+			vertices.push_back(x1 * zr1);
+			vertices.push_back(y1 * zr1);
+			vertices.push_back(z1);
+			indices.push_back(indicator);
 			indicator++;
 
 			// Calculate the avg of each axis, so then can get the normal for the entire quad, not just for each vertex
@@ -91,24 +88,24 @@ void Sphere::init() {
 			glm::vec3 avg = glm::normalize(glm::vec3(x_avg, y_avg, z_avg));
 
 			// Each vertex for a single quad will have the same normal
-			norms1.push_back(avg.x);
-			norms1.push_back(avg.y);
-			norms1.push_back(avg.z);
+			norms.push_back(avg.x);
+			norms.push_back(avg.y);
+			norms.push_back(avg.z);
 
-			norms1.push_back(avg.x);
-			norms1.push_back(avg.y);
-			norms1.push_back(avg.z);
+			norms.push_back(avg.x);
+			norms.push_back(avg.y);
+			norms.push_back(avg.z);
 
-			norms1.push_back(avg.x);
-			norms1.push_back(avg.y);
-			norms1.push_back(avg.z);
+			norms.push_back(avg.x);
+			norms.push_back(avg.y);
+			norms.push_back(avg.z);
 
-			norms1.push_back(avg.x);
-			norms1.push_back(avg.y);
-			norms1.push_back(avg.z);
+			norms.push_back(avg.x);
+			norms.push_back(avg.y);
+			norms.push_back(avg.z);
 		}
 
-		indices1.push_back(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+		indices.push_back(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 	}
 
 
@@ -128,7 +125,7 @@ void Sphere::init() {
 	// Bind VBO to the bound VAO, and store the point data
 	glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices1.size(), &vertices1[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 0 to pass point data through to the shader
 	glEnableVertexAttribArray(0);
@@ -137,7 +134,7 @@ void Sphere::init() {
 
 	// Bind VBO2 to the bound VAO, and store the vertex norm data
 	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * norms1.size(), &norms1[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * norms.size(), &norms[0], GL_STATIC_DRAW);
 
 	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
 	glEnableVertexAttribArray(1);
@@ -147,13 +144,13 @@ void Sphere::init() {
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &eboIndex);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboIndex);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLuint) * indices1.size(), &indices1[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
 	// Unbind the VBO/VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	numEltsToDraw = indices1.size();
+	numEltsToDraw = indices.size();
 	std::cout << "Finished initing sphere with " << numEltsToDraw << " number of elements" << std::endl;
 }
 

@@ -15,9 +15,9 @@ private:
 	GLuint vao, vboVertex, vboNormals, eboIndex;
 	int lats, longs;
 	int numEltsToDraw;
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::ivec3> indices;
-	std::vector<glm::vec3> vertexNorms;
+	std::vector<GLfloat> vertices;
+	std::vector<GLuint> indices;
+	std::vector<GLfloat> norms;
 
 public:
 	Sphere();

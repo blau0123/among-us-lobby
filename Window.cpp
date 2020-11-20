@@ -6,6 +6,11 @@ int Window::width;
 int Window::height;
 const char* Window::windowTitle = "GLFW Starter Project";
 
+// Animation controls (0 = no animation, 1 = animation)
+int Window::anim1 = 1;
+int Window::anim2 = 1;
+int Window::anim3 = 1;
+
 // Objects to Render
 Cube * Window::cube;
 Sphere* Window::sphere;
@@ -24,18 +29,19 @@ Transform* Window::translateGround;
 Transform* Window::translateGroundBack;
 Transform* Window::translatePole;
 Transform* Window::scalePole;
+Transform* Window::translateWheelUpAndDown;
 Transform* Window::translateWheel;
 Transform* Window::scaleWheel;
+Transform* Window::rotateWheel;
 Transform* Window::rotateSupportPoleX;
 Transform* Window::rotateSupportPoleZ;
-Transform* Window::rotateCar;
 Transform* Window::scaleAttachPole;
 Transform* Window::scaleSupportPoleLeft;
 Transform* Window::scaleSupportPoleRight;
 Transform* Window::scaleSupportPoleFront;
 Transform* Window::scaleSupportPoleBack;
-std::vector<Transform*> Window::rotateCars;
 std::vector<Transform*> Window::translateCars;
+std::vector<Transform*> Window::rotateCars;
 
 Geometry* Window::ground;
 Geometry* Window::pole;
@@ -90,8 +96,10 @@ bool Window::initializeSceneGraph() {
 	translateGroundBack = new Transform();
 	translatePole = new Transform();
 	scalePole = new Transform();
+	translateWheelUpAndDown = new Transform();
 	translateWheel = new Transform();
 	scaleWheel = new Transform();
+	rotateWheel = new Transform();
 	scaleSupportPoleLeft = new Transform();
 	scaleSupportPoleRight = new Transform();
 	scaleSupportPoleFront = new Transform();
@@ -99,15 +107,19 @@ bool Window::initializeSceneGraph() {
 	rotateSupportPoleX = new Transform();
 	rotateSupportPoleZ = new Transform();
 	//translateCar = new Transform();
-	rotateCar = new Transform();
 	scaleAttachPole = new Transform();
 
 	World->addChild(translateGround);
 	translateGround->addChild(translatePole);
 	translateGround->addChild(translateGroundBack);
 	translatePole->addChild(scalePole);
-	translatePole->addChild(translateWheel);
+	//translatePole->addChild(translateWheel);
+	translatePole->addChild(rotateWheel);
+	//rotateWheel->addChild(translateWheel);
+	rotateWheel->addChild(translateWheelUpAndDown);
+	translateWheelUpAndDown->addChild(translateWheel);
 	translateWheel->addChild(scaleWheel);
+	// scaleWheel->addChild(rotateWheel);
 	translateWheel->addChild(scaleSupportPoleLeft);
 	translateWheel->addChild(scaleSupportPoleRight);
 	translateWheel->addChild(scaleSupportPoleFront);
@@ -143,6 +155,7 @@ bool Window::initializeSceneGraph() {
 	translateGroundBack->addChild(ground);
 	scalePole->addChild(pole);
 	scaleWheel->addChild(wheel);
+	//rotateWheel->addChild(wheel);
 
 	// Create 5 cars that will be on the outskirt of the wheel
 	createRideCars();
@@ -226,10 +239,13 @@ bool Window::createRideCars() {
 		0.4f
 	);
 	Transform* translateCar = new Transform();
-	translateCar->addChild(car);
+	Transform* rotateCar = new Transform();
+	translateWheel->addChild(translateCar);
+	translateCar->addChild(rotateCar);
+	rotateCar->addChild(car);
 	translateCar->transform(glm::translate(glm::vec3(6.0f, -4.0f, 0.0f)));
-	translateWheel->addChild(translateCar);
 	translateCars.push_back(translateCar);
+	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
 
 	car = new Geometry("obj/bunny.obj");
@@ -240,10 +256,13 @@ bool Window::createRideCars() {
 		0.4f
 	);
 	translateCar = new Transform();
-	translateCar->addChild(car);
+	rotateCar = new Transform();
+	translateWheel->addChild(translateCar);
+	translateCar->addChild(rotateCar);
+	rotateCar->addChild(car);
 	translateCar->transform(glm::translate(glm::vec3(0.0f, -4.0f, 6.0f)));
-	translateWheel->addChild(translateCar);
 	translateCars.push_back(translateCar);
+	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
 
 	car = new Geometry("obj/bunny.obj");
@@ -254,10 +273,13 @@ bool Window::createRideCars() {
 		0.4f
 	);
 	translateCar = new Transform();
-	translateCar->addChild(car);
+	rotateCar = new Transform();
+	translateWheel->addChild(translateCar);
+	translateCar->addChild(rotateCar);
+	rotateCar->addChild(car);
 	translateCar->transform(glm::translate(glm::vec3(-6.0f, -4.0f, 0.0f)));
-	translateWheel->addChild(translateCar);
 	translateCars.push_back(translateCar);
+	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
 
 	car = new Geometry("obj/bunny.obj");
@@ -268,11 +290,15 @@ bool Window::createRideCars() {
 		0.4f
 	);
 	translateCar = new Transform();
-	translateCar->addChild(car);
-	translateCar->transform(glm::translate(glm::vec3(0.0f, -4.0f, -6.0f)));
+	rotateCar = new Transform();
 	translateWheel->addChild(translateCar);
+	translateCar->addChild(rotateCar);
+	rotateCar->addChild(car);
+	translateCar->transform(glm::translate(glm::vec3(0.0f, -4.0f, -6.0f)));
 	translateCars.push_back(translateCar);
+	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
+
 	return true;
 }
 
@@ -366,9 +392,10 @@ void Window::cleanUp()
 	delete translateGroundBack;
 	delete translatePole;
 	delete scalePole;
+	delete translateWheelUpAndDown;
 	delete translateWheel;
 	delete scaleWheel;
-	delete rotateCar;
+	delete rotateWheel;
 	delete rotateSupportPoleX;
 	delete rotateSupportPoleZ;
 	delete scaleSupportPoleLeft;
@@ -383,7 +410,7 @@ void Window::cleanUp()
 	delete car;
 	delete car2;
 
-	for (int i = 0; i < rotateCars.size(); i++) {
+	for (int i = 0; i < translateCars.size(); i++) {
 		delete rotateCars[i];
 		delete translateCars[i];
 		delete cars[i];
@@ -477,7 +504,14 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 void Window::idleCallback()
 {
 	// Perform any necessary updates here 
-	// currObj->update();
+	// if (anim1)
+	//translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, -0.01f, 0.0f)));
+	if (anim2)
+		rotateWheel->transform(glm::rotate(glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	if (anim3) {
+		for (int i = 0; i < rotateCars.size(); i++)
+			rotateCars[i]->transform(glm::rotate(glm::radians(-0.3f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	}
 }
 
 void Window::displayCallback(GLFWwindow* window)
@@ -550,10 +584,6 @@ void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	/*
-	 * TODO: Modify below to add your key callbacks.
-	 */
-	
 	// Check for a key press.
 	if (action == GLFW_PRESS)
 	{
@@ -578,25 +608,56 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 		// Rotate model when mouse button down
 		case GLFW_KEY_1:
 			rotateType = 1;
+			anim1 = !anim1;
 			std::cout << "Switched to rotate type " << rotateType << std::endl;
 			break;
 		// Rotate light source when mouse button down
 		case GLFW_KEY_2:
 			rotateType = 2;
+			anim2 = !anim2;
 			std::cout << "Switched to rotate type " << rotateType << std::endl;
 			break;
 		// Rotate model and light source together when mouse button down
 		case GLFW_KEY_3:
 			rotateType = 3;
+			anim3 = !anim3;
 			std::cout << "Switched to rotate type " << rotateType << std::endl;
 			break;
 		case GLFW_KEY_L:
 			// Increase point size
 			((PointCloud*)currObj)->updatePointSize(sizeIncrement);
 			break;
+		case GLFW_KEY_W:
+			// Move forward
+			eyePos = glm::translate(glm::vec3(0.0f, 0.0f, -1.0f)) * glm::vec4(eyePos, 1.0f);
+			lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, -1.0f)) * glm::vec4(lookAtPoint, 1.0f);
+			// Update view vector with new eyePos
+			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			std::cout << glm::to_string(eyePos) << std::endl;
+			break;
+		case GLFW_KEY_A:
+			// Move up
+			eyePos = glm::translate(glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(eyePos, 1.0f);
+			lookAtPoint = glm::translate(glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+			// Update view vector with new eyePos
+			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			break;
 		case GLFW_KEY_S:
-			// Decrease point size
-			((PointCloud*)currObj)->updatePointSize(-sizeIncrement);
+			// Move backward
+			eyePos = glm::translate(glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(eyePos, 1.0f);
+			lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(lookAtPoint, 1.0f);
+			// Update view vector with new eyePos
+			view = glm::lookAt(eyePos, lookAtPoint, upVector);
+			break;
+		case GLFW_KEY_D:
+			// Move down
+			// If we are at ground level, don't go down any more (don't go past ground)
+			if (eyePos.y <= 0)
+				break;
+			eyePos = glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::vec4(eyePos, 1.0f);
+			lookAtPoint = glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);
+			// Update view vector with new eyePos
+			view = glm::lookAt(eyePos, lookAtPoint, upVector);
 			break;
 		case GLFW_KEY_N:
 			// Switch rendering mode between normal coloring and Phong illumination model

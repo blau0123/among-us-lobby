@@ -24,6 +24,13 @@ public:
 	// 1 --> rotate model, 2 --> rotate light source, 3 --> rotate both by same amount
 	static int rotateType;
 
+	// anim1 = wheel translating up and down pole
+	// anim2 = wheel rotating
+	// anim3 = cars rotating
+	static int anim1;
+	static int anim2;
+	static int anim3;
+
 	// Objects to Render
 	static Cube* cube;
 	static Sphere* sphere;
@@ -34,14 +41,14 @@ public:
 	static LightSource* lightSphere;
 
 	/* Scene Graph nodes
-		World -- translateGround -- translatePole -- translateWheel -- scaleSupport -- (translateSupport -- rotateSupportAboutPole -- support) repeat for each support pole
-					|				  |					|		\
-					|				  |					|		 \
-					|				  |					|		   -- translateCar -- car
-					|				  |					|						\
-					|				  |					|						  -- scaleAttachToWheel -- attachToWheel
-					|				  |					|
-					|				  |					  -- scaleWheel -- wheel
+		World -- translateGround -- translatePole -- rotateWheel -- translateWheel -- scaleSupport -- (translateSupport -- support) repeat for each support pole
+					|				  |								 |		\
+					|				  |								 |		 \
+					|				  |								 |		   -- translateCar -- rotateCar -- car
+					|				  |								 |					\
+					|				  |								 |					  -- scaleAttachToWheel -- attachToWheel
+					|				  |								 |
+					|				  |								  -- scaleWheel -- wheel
 					|				  | 
 					|					-- scalePole -- pole
 					|
@@ -52,15 +59,16 @@ public:
 	static Transform* translateGroundBack;
 	static Transform* translatePole;
 	static Transform* scalePole;
+	static Transform* translateWheelUpAndDown;
 	static Transform* translateWheel;
 	static Transform* scaleWheel;
+	static Transform* rotateWheel;
 	static Transform* scaleSupportPoleLeft;
 	static Transform* scaleSupportPoleRight;
 	static Transform* scaleSupportPoleFront;
 	static Transform* scaleSupportPoleBack;
 	static Transform* rotateSupportPoleX;
 	static Transform* rotateSupportPoleZ;
-	static Transform* rotateCar;
 	static Transform* scaleAttachPole;
 	static std::vector<Transform*> translateCars;
 	static std::vector<Transform*> rotateCars;
