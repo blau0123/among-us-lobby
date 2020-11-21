@@ -7,29 +7,6 @@
 
 Sphere::Sphere()
 {
-	isInited = false;
-	vao = 0;
-	// 1 vbo to store vertices of sphere, 1 vbo to hold normals, 1 ebo to hold indices in order to draw faces
-	vboVertex = 0;
-	vboNormals = 0;
-	eboIndex = 0;
-
-	// Along longitude, have 40 quads, and along latitude, have 40 quads
-	lats = 40;
-	longs = 40;
-	numEltsToDraw = 0;
-}
-
-Sphere::~Sphere()
-{
-	// Delete the VBO, EBO and the VAO.
-	glDeleteBuffers(1, &vboNormals);
-	glDeleteBuffers(1, &vboVertex);
-	glDeleteBuffers(1, &eboIndex);
-	glDeleteVertexArrays(1, &vao);
-}
-
-void Sphere::init() {
 	int i, j;
 	int indicator = 0;
 
@@ -37,7 +14,7 @@ void Sphere::init() {
 		double lat0 = glm::pi<double>() * (-0.5 + (double)(i - 1.0) / lats);
 		double z0 = sin(lat0);
 		double zr0 = cos(lat0);
-		
+
 		double lat1 = glm::pi<double>() * (-0.5 + (double)i / lats);
 		double z1 = sin(lat1);
 		double zr1 = cos(lat1);
@@ -55,7 +32,7 @@ void Sphere::init() {
 				 x		x1
 			y -> *		*
 
-			y1 -> *		* 
+			y1 -> *		*
 			*/
 			vertices.push_back(x * zr1);
 			vertices.push_back(y * zr1);
@@ -112,46 +89,46 @@ void Sphere::init() {
 	// Initialize model view matrix
 	model = glm::mat4(1);
 	// Scale the sphere so it's bigger on the screen
-	// model = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f)) * model;
+	model = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f)) * model;
+	model = glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * model;
+	model = glm::translate(glm::vec3(0.0f, 8.0f, 0.0f)) * model;
 
-	// Generate a Vertex Array (VAO) and Vertex Buffer Object (VBO)
 	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vboVertex);
-	glGenBuffers(1, &vboNormals);
-
-	// Bind VAO
 	glBindVertexArray(vao);
 
-	// Bind VBO to the bound VAO, and store the point data
+	glGenBuffers(1, &vboVertex);
 	glBindBuffer(GL_ARRAY_BUFFER, vboVertex);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
 
-	// Enable Vertex Attribute 0 to pass point data through to the shader
-	glEnableVertexAttribArray(0);
-	// Location for the position layout variable in the vertex shader
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
 
-	// Bind VBO2 to the bound VAO, and store the vertex norm data
+
+	glGenBuffers(1, &vboNormals);
 	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * norms.size(), &norms[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, norms.size() * sizeof(GLfloat), &norms[0], GL_STATIC_DRAW);
 
-	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(1);
-	// Location for the vertex norm layout variable in the vertex shader
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
-	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &eboIndex);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboIndex);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLuint) * indices.size(), &indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
 
-	// Unbind the VBO/VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 	numEltsToDraw = indices.size();
 	std::cout << "Finished initing sphere with " << numEltsToDraw << " number of elements" << std::endl;
+}
+
+Sphere::~Sphere()
+{
+	// Delete the VBO, EBO and the VAO.
+	glDeleteBuffers(1, &vboNormals);
+	glDeleteBuffers(1, &vboVertex);
+	glDeleteBuffers(1, &eboIndex);
+	glDeleteVertexArrays(1, &vao);
 }
 
 void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
@@ -186,6 +163,7 @@ void Sphere::draw(const glm::mat4& view, const glm::mat4& projection, const glm:
 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);
+	glDisable(GL_PRIMITIVE_RESTART);
 	glUseProgram(0);
 }
 

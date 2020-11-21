@@ -56,13 +56,13 @@ public:
 
 	/* Scene Graph nodes
 		World -- translateGround -- translatePole -- rotateWheel -- translateWheel -- scaleSupport -- (translateSupport -- support) repeat for each support pole
-					|				  |								 |		\
-					|				  |								 |		 \
-					|				  |								 |		   -- translateCar -- rotateCar -- car
-					|				  |								 |					\
-					|				  |								 |					  -- scaleAttachToWheel -- attachToWheel
-					|				  |								 |
-					|				  |								  -- scaleWheel -- wheel
+					|				  |					|		\
+					|				  |					|		 \
+					|				  |					|		   -- translateCar -- rotateCar -- car
+					|				  |					 |					\
+					|				  |					|					  -- scaleAttachToWheel -- attachToWheel
+					|				  |					|
+					|				  |					  -- scaleWheel -- wheel
 					|				  | 
 					|					-- scalePole -- pole
 					|

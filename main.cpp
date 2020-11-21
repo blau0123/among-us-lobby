@@ -78,10 +78,9 @@ int main(void)
 	if (!Window::initializeProgram()) 
 		exit(EXIT_FAILURE);
 
-	
 	if (!Window::initializeSceneGraph())
 		exit(EXIT_FAILURE);
-	
+
 	// Initialize objects/pointers for rendering; exit if initialization fails.
 	if (!Window::initializeObjects()) 
 		exit(EXIT_FAILURE);

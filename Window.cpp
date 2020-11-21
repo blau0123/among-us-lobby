@@ -83,7 +83,7 @@ bool Window::initializeProgram() {
 	sphereShaderProgram = LoadShaders("shaders/sphereShader.vert", "shaders/sphereShader.frag");
 
 	// Check the shader program.
-	if (!shaderProgram)
+	if (!shaderProgram || !skyBoxShaderProgram || !sphereShaderProgram)
 	{
 		std::cerr << "Failed to initialize shader program" << std::endl;
 		return false;
@@ -232,6 +232,8 @@ bool Window::createSupportPoles() {
 	supportPoles.push_back(supportPoleFront);
 	supportPoles.push_back(supportPoleBack);
 
+	std::cout << "Finished creating support poles" << std::endl;
+
 	return true;
 }
 
@@ -304,12 +306,15 @@ bool Window::createRideCars() {
 	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
 
+	std::cout << "Finished creating ride cars" << std::endl;
+
 	return true;
 }
 
 bool Window::createAttachPoles() {
+	Geometry* attachPole;
 	for (int i = 0; i < translateCars.size(); i++) {
-		Geometry* attachPole = new Geometry("obj/cylinder.obj");
+		attachPole = new Geometry("obj/cylinder.obj");
 		attachPole->setModelMaterialProperties(
 			// diffuse, specular, ambient
 			glm::vec3(0.50754, 0.50754, 0.50754),
@@ -322,6 +327,8 @@ bool Window::createAttachPoles() {
 		attachPoles.push_back(attachPole);
 	}
 
+	std::cout << "Finished creating attach poles" << std::endl;
+
 	return true;
 }
 
@@ -333,7 +340,6 @@ bool Window::initializeObjects()
 
 	// Create tesselated sphere
 	sphere = new Sphere();
-	sphere->init();
 
 	lightSphere = new LightSource("obj/sphere.obj", 10);
 	lightSphere->setModelMaterialProperties(
@@ -385,6 +391,7 @@ void Window::cleanUp()
 {
 	// Deallcoate the objects.
 	delete cube;
+	delete sphere;
 	delete bunnyPoints;
 	delete bearPoints;
 	delete sandalPoints;
@@ -532,6 +539,11 @@ void Window::idleCallback()
 		for (int i = 0; i < rotateCars.size(); i++)
 			rotateCars[i]->transform(glm::rotate(glm::radians(-0.3f), glm::vec3(0.0f, 1.0f, 0.0f)));
 	}
+
+	if (moving != -1) {
+		// The user is holding a key to move/turn the camera
+		updateCameraIfKeyHold();
+	}
 }
 
 void Window::displayCallback(GLFWwindow* window)
@@ -542,11 +554,7 @@ void Window::displayCallback(GLFWwindow* window)
 	// Use Phong illumination shader for Scene Graph
 	World->draw(glm::mat4(1), view, projection, shaderProgram);
 	lightSphere->draw(view, projection, shaderProgram);
-	if (moving != -1) {
-		// The user is holding a key to move/turn the camera
-		updateCameraIfKeyHold();
-	}
-	//sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
+	sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
 	/* Render the objects
 	currObj->draw(view, projection, shaderProgram);
 	// If the current render mode is 1, show the light source and if not (normal shading), don't show
@@ -615,11 +623,12 @@ void Window::updateCameraIfKeyHold() {
 
 void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 	// If y < 0, then scroll down & if y > 0, then scroll up
-	// If rotateType = 1, scale model; if 2, change distance of light from center; if 3, do both 1 and 2
+	/* If rotateType = 1, scale model; if 2, change distance of light from center; if 3, do both 1 and 2
 	if (rotateType == 1 || rotateType == 3)
 		((PointCloud*)currObj)->updateModelSize(yoffset);
 	if (rotateType == 2 || rotateType == 3)
 		lightSphere->updateLightPositionToCenter(yoffset);
+	*/
 }
 
 void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int mods) {

@@ -11,9 +11,8 @@ using namespace std;
 class Sphere : public Object
 {
 private:
-	bool isInited;
-	GLuint vao, vboVertex, vboNormals, eboIndex;
-	int lats, longs;
+	GLuint vao = 0, vboVertex = 0, vboNormals = 0, eboIndex = 0;
+	int lats = 40, longs = 40;
 	int numEltsToDraw;
 	std::vector<GLfloat> vertices;
 	std::vector<GLuint> indices;
@@ -25,7 +24,6 @@ public:
 
 	void draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, unsigned int cubemapTextureID, GLuint shader);
 	void draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader);
-	void init();
 	void update();
 };
 
