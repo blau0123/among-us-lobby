@@ -3,8 +3,9 @@
 #include <sstream>
 #include <iostream>
 
-Geometry::Geometry(std::string filename) {
+Geometry::Geometry(std::string filename, int bfCull) {
 	name = filename;
+	requiresBackfaceCull = bfCull;
 	init(filename);
 }
 
@@ -172,12 +173,14 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 
 	// Bind the VAO
 	glBindVertexArray(vao);
-	//glDisable(GL_CULL_FACE);
+	if (requiresBackfaceCull == 1) 
+		glDisable(GL_CULL_FACE);
 
 	// Draw the points using triangles, indexed with the EBO
 	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
 
-	//glEnable(GL_CULL_FACE);
+	if (requiresBackfaceCull == 1)
+		glEnable(GL_CULL_FACE);
 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);

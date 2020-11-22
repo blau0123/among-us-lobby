@@ -35,11 +35,13 @@ private:
 	float shininess;
 
 	std::string name;
+	// 0 if this geometry requires backface culling, or 1 if not (such as cylinder, where want to show the backface)
+	int requiresBackfaceCull = 0;
 
 	GLuint vao, vboVertex, vboNormals, eboIndices;
 
 public:
-	Geometry(std::string filename);
+	Geometry(std::string filename, int bfCull);
 	~Geometry();
 	// Calculate the object's coordinates relative to parent using C and modelview matrix 
 	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader);

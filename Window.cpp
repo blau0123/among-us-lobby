@@ -30,6 +30,7 @@ unsigned int Window::cubemapTextureID;
 // Scene Graph nodes
 Transform* Window::World;
 Transform* Window::translateGround;
+Transform* Window::scaleGround;
 Transform* Window::translateGroundBack;
 Transform* Window::translatePole;
 Transform* Window::scalePole;
@@ -64,7 +65,7 @@ glm::mat4 Window::projection;
 glm::mat4 Window::scale;
 
 // View Matrix:
-glm::vec3 Window::eyePos(0, 5, 20);			// Camera position.
+glm::vec3 Window::eyePos(0, 0, 20);			// Camera position.
 glm::vec3 Window::lookAtPoint(0, 0, 0);		// The point we are looking at.
 glm::vec3 Window::upVector(0, 1, 0);		// The up direction of the camera.
 glm::mat4 Window::view = glm::lookAt(Window::eyePos, Window::lookAtPoint, Window::upVector);
@@ -97,6 +98,7 @@ bool Window::initializeSceneGraph() {
 	// Create all transformations
 	World = new Transform();
 	translateGround = new Transform();
+	scaleGround = new Transform();
 	translateGroundBack = new Transform();
 	translatePole = new Transform();
 	scalePole = new Transform();
@@ -115,7 +117,8 @@ bool Window::initializeSceneGraph() {
 
 	World->addChild(translateGround);
 	translateGround->addChild(translatePole);
-	translateGround->addChild(translateGroundBack);
+	translateGround->addChild(scaleGround);
+	scaleGround->addChild(translateGroundBack);
 	translatePole->addChild(scalePole);
 	//translatePole->addChild(translateWheel);
 	translatePole->addChild(rotateWheel);
@@ -134,21 +137,21 @@ bool Window::initializeSceneGraph() {
 	scaleSupportPoleBack->addChild(rotateSupportPoleZ);
 
 	// Create all the Geometries
-	ground = new Geometry("obj/cube.obj");
+	ground = new Geometry("obj/cube.obj", 0);
 	ground->setModelMaterialProperties(
 		glm::vec3(0, 0, 0),
 		glm::vec3(0, 0, 0),
 		glm::vec3(1.0f, 0.5f, 0.31f),
 		0.088
 	);
-	pole = new Geometry("obj/cylinder.obj");
+	pole = new Geometry("obj/cylinder.obj", 1);
 	pole->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.0, 0.7, 0.0),
 		0.4f
 	);
-	wheel = new Geometry("obj/torus_lr.obj");
+	wheel = new Geometry("obj/torus_lr.obj", 0);
 	wheel->setModelMaterialProperties(
 		glm::vec3(0.61424, 0.04136, 0.04136),
 		glm::vec3(0.727811, 0.626959, 0.626959),
@@ -169,7 +172,8 @@ bool Window::initializeSceneGraph() {
 	createSupportPoles();
 
 	// Add transforms to each Transformation node
-	translateGround->transform(glm::translate(glm::vec3(0.0f, -7.0f, 0.0f)));
+	translateGround->transform(glm::translate(glm::vec3(0.0f, -10.0f, 0.0f)));
+	scaleGround->transform(glm::scale(glm::vec3(10.0f, 10.0f, 10.0f)));
 	translateGroundBack->transform(glm::translate(glm::vec3(0.0f, 0.0f, -7.0f)));
 	scalePole->transform(glm::scale(glm::vec3(1.0f, 7.0f, 1.0f)));
 	translateWheel->transform(glm::translate(glm::vec3(0.0f, 14.0f, 0.0f)));
@@ -183,7 +187,7 @@ bool Window::initializeSceneGraph() {
 }
 
 bool Window::createSupportPoles() {
-	Geometry* supportPoleLeft = new Geometry("obj/cylinder.obj");
+	Geometry* supportPoleLeft = new Geometry("obj/cylinder.obj", 1);
 	supportPoleLeft->setModelMaterialProperties(
 		// diffuse, specular, ambient
 		glm::vec3(0.50754, 0.50754, 0.50754),
@@ -191,7 +195,7 @@ bool Window::createSupportPoles() {
 		glm::vec3(0.19225, 0.19225, 0.19225),
 		0.4f
 	);
-	Geometry* supportPoleRight = new Geometry("obj/cylinder.obj");
+	Geometry* supportPoleRight = new Geometry("obj/cylinder.obj", 1);
 	supportPoleRight->setModelMaterialProperties(
 		// diffuse, specular, ambient
 		glm::vec3(0.50754, 0.50754, 0.50754),
@@ -206,7 +210,7 @@ bool Window::createSupportPoles() {
 	rotateSupportPoleX->addChild(supportPoleLeft);
 	rotateSupportPoleX->addChild(supportPoleRight);
 
-	Geometry* supportPoleFront = new Geometry("obj/cylinder.obj");
+	Geometry* supportPoleFront = new Geometry("obj/cylinder.obj", 1);
 	supportPoleFront->setModelMaterialProperties(
 		// diffuse, specular, ambient
 		glm::vec3(0.50754, 0.50754, 0.50754),
@@ -214,7 +218,7 @@ bool Window::createSupportPoles() {
 		glm::vec3(0.19225, 0.19225, 0.19225),
 		0.4f
 	);
-	Geometry* supportPoleBack = new Geometry("obj/cylinder.obj");
+	Geometry* supportPoleBack = new Geometry("obj/cylinder.obj", 1);
 	supportPoleBack->setModelMaterialProperties(
 		// diffuse, specular, ambient
 		glm::vec3(0.50754, 0.50754, 0.50754),
@@ -238,7 +242,7 @@ bool Window::createSupportPoles() {
 }
 
 bool Window::createRideCars() {
-	Geometry* car = new Geometry("obj/bunny.obj");
+	Geometry* car = new Geometry("obj/bunny.obj", 0);
 	car->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
@@ -255,7 +259,7 @@ bool Window::createRideCars() {
 	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
 
-	car = new Geometry("obj/bunny.obj");
+	car = new Geometry("obj/bunny.obj", 0);
 	car->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
@@ -272,7 +276,7 @@ bool Window::createRideCars() {
 	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
 
-	car = new Geometry("obj/bunny.obj");
+	car = new Geometry("obj/bunny.obj", 0);
 	car->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
@@ -289,7 +293,7 @@ bool Window::createRideCars() {
 	rotateCars.push_back(rotateCar);
 	cars.push_back(car);
 
-	car = new Geometry("obj/bunny.obj");
+	car = new Geometry("obj/bunny.obj", 0);
 	car->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
@@ -314,7 +318,7 @@ bool Window::createRideCars() {
 bool Window::createAttachPoles() {
 	Geometry* attachPole;
 	for (int i = 0; i < translateCars.size(); i++) {
-		attachPole = new Geometry("obj/cylinder.obj");
+		attachPole = new Geometry("obj/cylinder.obj", 1);
 		attachPole->setModelMaterialProperties(
 			// diffuse, specular, ambient
 			glm::vec3(0.50754, 0.50754, 0.50754),
@@ -528,7 +532,7 @@ void Window::idleCallback()
 			translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, 0.01f, 0.0f)));
 			counter += 0.01f;
 			// Wheel has reached max point, so now go back down
-			if (counter >= 14.0f) {
+			if (counter >= 13.5f) {
 				upOrDown = -1;
 			}
 		}
@@ -595,7 +599,7 @@ void Window::updateCameraIfKeyHold() {
 	case 3:
 		// Move down
 		// If we are at ground level, don't go down any more (don't go past ground)
-		if (eyePos.y <= 0)
+		if (eyePos.y <= -5)
 			break;
 		eyePos = glm::translate(glm::vec3(0.0f, -0.05f, 0.0f)) * glm::vec4(eyePos, 1.0f);
 		lookAtPoint = glm::translate(glm::vec3(0.0f, -0.05f, 0.0f)) * glm::vec4(lookAtPoint, 1.0f);

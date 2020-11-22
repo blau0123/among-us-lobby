@@ -66,10 +66,11 @@ public:
 					|				  | 
 					|					-- scalePole -- pole
 					|
-					 -- translateGroundBack -- ground
+					 -- scaleGround -- translateGroundBack -- ground
 	*/
 	static Transform* World;
 	static Transform* translateGround;
+	static Transform* scaleGround;
 	static Transform* translateGroundBack;
 	static Transform* translatePole;
 	static Transform* scalePole;
