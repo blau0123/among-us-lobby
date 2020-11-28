@@ -9,6 +9,7 @@ AmongUsObject::AmongUsObject(std::string filename) {
 	// Hold the indices for vertices and normals in order to get a vertices and normals vector with same ordering
 	std::vector<int> vertexIndices;
 	std::vector<int> normalIndices;
+	std::vector<int> texIndices;
 
 	// Check whether the file can be opened before reading
 	if (objFile.is_open()) {
@@ -38,6 +39,11 @@ AmongUsObject::AmongUsObject(std::string filename) {
 				ss >> vNorm.x >> vNorm.y >> vNorm.z;
 				vertexNorms.push_back(vNorm);
 			}
+			else if (label == "vt") {
+				glm::vec2 tex;
+				ss >> tex.x >> tex.y;
+				texCoords.push_back(tex);
+			}
 			else if (label == "f") {
 				glm::ivec3 faceIndices;
 				// Get the three vertex-vertex normal index pairs (the x, y, z)
@@ -58,6 +64,12 @@ AmongUsObject::AmongUsObject(std::string filename) {
 				lastX = pairsX.find("/", lastX) + 1;
 				lastY = pairsY.find("/", lastY) + 1;
 				lastZ = pairsZ.find("/", lastZ) + 1;
+
+				// std::cout << "1st: " << pairsX.find("/", 0) + 1 << "; 2nd: " << pairsX.find("/", lastX) << std::endl;
+				texIndices.push_back(std::stoi(pairsX.substr(pairsX.find("/", 0) + 1, pairsX.find("/", lastX))));
+				texIndices.push_back(std::stoi(pairsY.substr(pairsY.find("/", 0) + 1, pairsY.find("/", lastY))));
+				texIndices.push_back(std::stoi(pairsZ.substr(pairsZ.find("/", 0) + 1, pairsZ.find("/", lastZ))));
+
 				normalIndices.push_back(std::stoi(pairsX.substr(pairsX.find("/", lastX) + 1)));
 				normalIndices.push_back(std::stoi(pairsY.substr(pairsY.find("/", lastY) + 1)));
 				normalIndices.push_back(std::stoi(pairsZ.substr(pairsZ.find("/", lastZ) + 1)));
@@ -79,11 +91,15 @@ AmongUsObject::AmongUsObject(std::string filename) {
 		// Get the vertex and normal from the given index
 		int vertexIndex = vertexIndices[i];
 		int normIndex = normalIndices[i];
+		int texIndex = texIndices[i];
+		// std::cout << texIndex << std::endl;
 		// std::cout << "About to access vertex index: " << vertexIndex << std::endl;
 		glm::vec3 vertex = vertices[vertexIndex - 1];
 		glm::vec3 normal = vertexNorms[normIndex - 1];
+		glm::vec2 tex = texCoords[texIndex - 1];
 		out_vertices.push_back(vertex);
 		out_normals.push_back(normal);
+		out_tex.push_back(tex);
 	}
 
 	for (unsigned int i = 0; i < vertexIndices.size() - 2; i += 3) {
@@ -106,6 +122,7 @@ AmongUsObject::AmongUsObject(std::string filename) {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo_v);
 	glGenBuffers(1, &vbo_n);
+	glGenBuffers(1, &vbo_t);
 
 	// Bind VAO
 	glBindVertexArray(vao);
@@ -130,6 +147,16 @@ AmongUsObject::AmongUsObject(std::string filename) {
 	// Location for the vertex norm layout variable in the vertex shader
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
+	// Bind vbo_t to the bound VAO, and store the texture data
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_t);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), vertexNorms.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)* out_tex.size(), &out_tex[0], GL_STATIC_DRAW);
+
+	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
+	glEnableVertexAttribArray(2);
+	// Location for the vertex norm layout variable in the vertex shader
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -148,10 +175,43 @@ AmongUsObject::~AmongUsObject()
 	// Delete the VBO, EBO and the VAO.
 	glDeleteBuffers(1, &vbo_v);
 	glDeleteBuffers(1, &vbo_n);
+	glDeleteBuffers(1, &vbo_t);
 	glDeleteBuffers(1, &ebo);
 	glDeleteVertexArrays(1, &vao);
 }
 
+
+GLuint AmongUsObject::loadTexture(std::string texLocation) {
+	GLuint texId;
+	// Get unique ID for texture, and tell OpenGL which texture to edit
+	glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set bi-linear interpolation
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // for both filtering modes
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // set texture edge mode
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Note: nrChannels = number of color channels
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	// Note: data[0] = first px's R, data[1] = first px's G, data[2] = first px's B, data[3] = 2nd px's R, etc.
+	unsigned char* data = stbi_load(texLocation.c_str(), &width, &height, &nrChannels, 0);
+	if (data) {
+		// Loads image into OpenGL texture in GPU memory
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+	else {
+		std::string fail_reason = "";
+		if (stbi_failure_reason())
+			fail_reason = stbi_failure_reason();
+		std::cout << "Texture failed to load at path: " << texLocation << " due to reason: " << fail_reason << std::endl;
+		stbi_image_free(data);
+	}
+	std::cout << "Successfully loaded texture " << texLocation << std::endl;
+	textureId = texId;
+	return texId;
+}
 
 void AmongUsObject::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader)
 {
@@ -169,6 +229,7 @@ void AmongUsObject::draw(const glm::mat4& view, const glm::mat4& projection, GLu
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
 	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
 	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 0);
+	glUniform1i(glGetUniformLocation(shader, "tex"), 0);
 
 	// Pass in which render mode we are in (normal, Phong)
 	glUniform1i(glGetUniformLocation(shader, "render_mode"), 1);
@@ -176,6 +237,7 @@ void AmongUsObject::draw(const glm::mat4& view, const glm::mat4& projection, GLu
 	// Bind the VAO
 	glBindVertexArray(vao);
 
+	glBindTexture(GL_TEXTURE_2D, textureId);
 	// Draw the points using triangles, indexed with the EBO
 	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
 

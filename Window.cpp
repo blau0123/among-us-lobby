@@ -6,6 +6,8 @@ int Window::width;
 int Window::height;
 const char* Window::windowTitle = "GLFW Starter Project";
 
+GLuint Window::textureId;
+
 // Animation controls (0 = no animation, 1 = animation)
 int Window::anim1 = 1;
 int Window::anim2 = 1;
@@ -348,6 +350,7 @@ bool Window::initializeObjects()
 		glm::vec3(0.19225, 0.19225, 0.19225),
 		0.1f * 128
 	);
+	lobby->loadTexture("textures/amongus_lobby.png");
 
 	// Create cubemap as our skybox
 	cube = new Cube(&cubemapTextureID);

@@ -22,6 +22,9 @@ public:
 	static int height;
 	static const char* windowTitle;
 
+	// Texture properties
+	static GLuint textureId;
+
 	// 1 --> rotate model, 2 --> rotate light source, 3 --> rotate both by same amount
 	static int rotateType;
 

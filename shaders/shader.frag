@@ -10,6 +10,7 @@ uniform vec3 lightColor;
 in float sampleExtraOutput;
 in vec3 fragPos;
 in vec3 fragNormal;
+in vec2 fragTexCoord;
 
 uniform vec3 color;
 // Material properties for the specific object being rendered with this fragment shader
@@ -23,6 +24,9 @@ uniform int render_mode;
 uniform int is_ground;
 
 uniform vec3 viewPos;
+
+// Used to determine the texture to assign the texture to the diffuse component
+uniform sampler2D tex;
 
 // You can output many things. The first vec4 type output determines the color of the fragment
 out vec4 fragColor;
@@ -67,6 +71,7 @@ void main()
         diffuse *= attenuation;
         specular *= attenuation;
 
+        diffuse = vec3(texture(tex, fragTexCoord));
         resultColor = ambient + diffuse + specular;
     }
 
