@@ -47,7 +47,6 @@ public:
 	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader);
 	// Load OBJ file
 	void init(std::string filename);
-	void initGround();
 	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s);
 	// Used to transform the object separately, such as scaling, rotating, or translating
 	void transform(glm::mat4 transformMatrix);

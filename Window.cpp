@@ -22,6 +22,7 @@ PointCloud * Window::cubePoints;
 PointCloud* Window::bunnyPoints;
 PointCloud* Window::sandalPoints;
 PointCloud* Window::bearPoints;
+AmongUsObject* Window::lobby;
 LightSource* Window::lightSphere;
 Object* currObj;
 
@@ -142,21 +143,21 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(0, 0, 0),
 		glm::vec3(0, 0, 0),
 		glm::vec3(1.0f, 0.5f, 0.31f),
-		0.088
+		0.088 * 128
 	);
 	pole = new Geometry("obj/cylinder.obj", 1);
 	pole->setModelMaterialProperties(
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.0, 0.7, 0.0),
-		0.4f
+		0.4f * 128
 	);
 	wheel = new Geometry("obj/torus_lr.obj", 0);
 	wheel->setModelMaterialProperties(
 		glm::vec3(0.61424, 0.04136, 0.04136),
 		glm::vec3(0.727811, 0.626959, 0.626959),
 		glm::vec3(1.0f, 0.5f, 0.31f),
-		0.1f
+		0.1f * 128
 	);
 
 	translateGroundBack->addChild(ground);
@@ -193,7 +194,7 @@ bool Window::createSupportPoles() {
 		glm::vec3(0.50754, 0.50754, 0.50754),
 		glm::vec3(0.508273, 0.508273, 0.508273),
 		glm::vec3(0.19225, 0.19225, 0.19225),
-		0.4f
+		0.4f * 128
 	);
 	Geometry* supportPoleRight = new Geometry("obj/cylinder.obj", 1);
 	supportPoleRight->setModelMaterialProperties(
@@ -201,7 +202,7 @@ bool Window::createSupportPoles() {
 		glm::vec3(0.50754, 0.50754, 0.50754),
 		glm::vec3(0.508273, 0.508273, 0.508273),
 		glm::vec3(0.19225, 0.19225, 0.19225),
-		0.4f
+		0.4f * 128
 	);
 
 	scaleSupportPoleLeft->transform(glm::scale(glm::vec3(3.0f, 0.3f, 0.3f)));
@@ -216,7 +217,7 @@ bool Window::createSupportPoles() {
 		glm::vec3(0.50754, 0.50754, 0.50754),
 		glm::vec3(0.508273, 0.508273, 0.508273),
 		glm::vec3(0.19225, 0.19225, 0.19225),
-		0.4f
+		0.4f * 128
 	);
 	Geometry* supportPoleBack = new Geometry("obj/cylinder.obj", 1);
 	supportPoleBack->setModelMaterialProperties(
@@ -224,7 +225,7 @@ bool Window::createSupportPoles() {
 		glm::vec3(0.50754, 0.50754, 0.50754),
 		glm::vec3(0.508273, 0.508273, 0.508273),
 		glm::vec3(0.19225, 0.19225, 0.19225),
-		0.4f
+		0.4f * 128
 	);
 	rotateSupportPoleZ->addChild(supportPoleFront);
 	rotateSupportPoleZ->addChild(supportPoleBack);
@@ -247,7 +248,7 @@ bool Window::createRideCars() {
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.0, 0.7, 0.0),
-		0.4f
+		0.4f * 128
 	);
 	Transform* translateCar = new Transform();
 	Transform* rotateCar = new Transform();
@@ -264,7 +265,7 @@ bool Window::createRideCars() {
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.0, 0.7, 0.0),
-		0.4f
+		0.4f * 128
 	);
 	translateCar = new Transform();
 	rotateCar = new Transform();
@@ -281,7 +282,7 @@ bool Window::createRideCars() {
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.0, 0.7, 0.0),
-		0.4f
+		0.4f * 128
 	);
 	translateCar = new Transform();
 	rotateCar = new Transform();
@@ -298,7 +299,7 @@ bool Window::createRideCars() {
 		glm::vec3(0.75164, 0.60648, 0.22648),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.0, 0.7, 0.0),
-		0.4f
+		0.4f * 128
 	);
 	translateCar = new Transform();
 	rotateCar = new Transform();
@@ -324,7 +325,7 @@ bool Window::createAttachPoles() {
 			glm::vec3(0.50754, 0.50754, 0.50754),
 			glm::vec3(0.508273, 0.508273, 0.508273),
 			glm::vec3(0.19225, 0.19225, 0.19225),
-			0.4f
+			0.4f * 128
 		);
 		scaleAttachPole->addChild(attachPole);
 		translateCars[i]->addChild(scaleAttachPole);
@@ -339,6 +340,15 @@ bool Window::createAttachPoles() {
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
 bool Window::initializeObjects()
 {
+	// Create lobby object
+	lobby = new AmongUsObject("obj/amongus_lobby.obj");
+	lobby->setModelMaterialProperties(
+		glm::vec3(0.50754, 0.50754, 0.50754),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.19225, 0.19225, 0.19225),
+		0.1f * 128
+	);
+
 	// Create cubemap as our skybox
 	cube = new Cube(&cubemapTextureID);
 
@@ -350,14 +360,14 @@ bool Window::initializeObjects()
 		glm::vec3(0.0, 0.0, 0.0),
 		glm::vec3(0.0, 0.0, 0.0),
 		glm::vec3(1.0f, 0.5f, 0.31f),
-		0.1f
+		0.1f * 128
 	);
 
 	// Initialize light source properties
 	lightSphere->initializeLightSourceProperties(shaderProgram, eyePos);
 
-	/*
-	// Create a point cloud consisting of cube vertices.
+	
+	/* Create a point cloud consisting of cube vertices.
 	bunnyPoints = new PointCloud("obj/bunny.obj", 10);
 	// Set the material properties for the bunny (k_d, k_s, k_a, shininess)
 	bunnyPoints->setModelMaterialProperties(
@@ -400,6 +410,7 @@ void Window::cleanUp()
 	delete bearPoints;
 	delete sandalPoints;
 	delete cubePoints;
+	delete lobby;
 	delete lightSphere;
 
 	// Deallocate scene graph nodes
@@ -519,7 +530,7 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 
 void Window::idleCallback()
 {
-	// Perform any necessary updates here 
+	/* Updates to scene graph to animate the ride 
 	if (anim1) {
 		if (upOrDown == -1) {
 			translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, -0.01f, 0.0f)));
@@ -548,23 +559,31 @@ void Window::idleCallback()
 		// The user is holding a key to move/turn the camera
 		updateCameraIfKeyHold();
 	}
+	*/
 }
 
 void Window::displayCallback(GLFWwindow* window)
 {	
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	/* Render skybox and use scene graph to render amusement park ride, along with tesselated disco ball
 	cube->draw(view, projection, skyBoxShaderProgram);
 	// Use Phong illumination shader for Scene Graph
 	World->draw(glm::mat4(1), view, projection, shaderProgram);
 	lightSphere->draw(view, projection, shaderProgram);
 	sphere->draw(view, projection, eyePos, cubemapTextureID, sphereShaderProgram);
-	/* Render the objects
+	*/
+
+	/* Render the objects for project 1 (render bear, sandal, and bunny models)
 	currObj->draw(view, projection, shaderProgram);
 	// If the current render mode is 1, show the light source and if not (normal shading), don't show
 	if (((PointCloud*)currObj)->getRenderMode() == 1)
 		lightSphere->draw(view, projection, shaderProgram);
 	*/
+
+	// Draw light sphere since lightSphere holds the light source that will illuminate the object
+	lightSphere->draw(view, projection, shaderProgram);
+	lobby->draw(view, projection, shaderProgram);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -636,33 +655,36 @@ void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) 
 }
 
 void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int mods) {
-	/*
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
 		if (action == GLFW_PRESS) {
 			// Get position of cursor when clicked
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			glm::vec2 pos(xpos, ypos);
-
-			// If rotateType = 1, rotate model; if 2, rotate light source; if 3, rotate both
+			lobby->initRotateModel(Window::width, Window::height, pos);
+			/* If rotateType = 1, rotate model; if 2, rotate light source; if 3, rotate both
 			if (rotateType == 1 || rotateType == 3)
 				((PointCloud*)currObj)->initRotateModel(Window::width, Window::height, pos);
 			if (rotateType == 2 || rotateType == 3)
 				lightSphere->initRotateModel(Window::width, Window::height, pos);
+			*/
 		}
 		else if (action == GLFW_RELEASE) {
-			// When release the mouse click, stop rotating
+			/* When release the mouse click, stop rotating
 			if (rotateType == 1 || rotateType == 3)
 				((PointCloud*)currObj)->endRotateModel();
 			if (rotateType == 2 || rotateType == 3)
 				lightSphere->endRotateModel();
+			*/
+			lobby->endRotateModel();
 		}
 	}
-	*/
 }
 
 void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
 	glm::vec2 curPos(xpos, ypos);
+	lobby->rotateModel(Window::width, Window::height, curPos);
+
 	/*
 	if (rotateType == 1 || rotateType == 3)
 		((PointCloud*)currObj)->rotateModel(Window::width, Window::height, curPos);

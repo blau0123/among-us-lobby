@@ -8,6 +8,7 @@
 #include "PointCloud.h"
 #include "LightSource.h"
 #include "Sphere.h"
+#include "AmongUsObject.h"
 
 #include "Transform.h"
 #include "Geometry.h"
@@ -52,6 +53,7 @@ public:
 	static PointCloud* bunnyPoints;
 	static PointCloud* sandalPoints;
 	static PointCloud* bearPoints;
+	static AmongUsObject* lobby;
 	static LightSource* lightSphere;
 
 	/* Scene Graph nodes

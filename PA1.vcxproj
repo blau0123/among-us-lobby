@@ -103,6 +103,7 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="LightSource.cpp" />
+    <ClCompile Include="AmongUsObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PointCloud.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -114,6 +115,7 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="LightSource.h" />
+    <ClInclude Include="AmongUsObject.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Object.h" />
