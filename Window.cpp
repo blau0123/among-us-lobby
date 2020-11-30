@@ -24,7 +24,10 @@ PointCloud * Window::cubePoints;
 PointCloud* Window::bunnyPoints;
 PointCloud* Window::sandalPoints;
 PointCloud* Window::bearPoints;
+
 AmongUsObject* Window::lobby;
+AmongUsObject* Window::userAstronaut;
+
 LightSource* Window::lightSphere;
 Object* currObj;
 
@@ -343,7 +346,7 @@ bool Window::createAttachPoles() {
 bool Window::initializeObjects()
 {
 	// Create lobby object
-	lobby = new AmongUsObject("obj/amongus_lobby.obj");
+	lobby = new AmongUsObject("obj/among_us/amongus_lobby.obj", 1, 0);
 	lobby->setModelMaterialProperties(
 		glm::vec3(0.50754, 0.50754, 0.50754),
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -351,6 +354,16 @@ bool Window::initializeObjects()
 		0.1f * 128
 	);
 	lobby->loadTexture("textures/amongus_lobby.png");
+	lobby->transform(glm::scale(glm::vec3(0.45f, 0.45f, 0.45f)));
+	
+	userAstronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 1);
+	userAstronaut->setModelMaterialProperties(
+		glm::vec3(0.50754, 0.50754, 0.50754),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.19225, 0.19225, 0.19225),
+		0.1f * 128
+	);
+	userAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
 
 	// Create cubemap as our skybox
 	cube = new Cube(&cubemapTextureID);
@@ -587,6 +600,7 @@ void Window::displayCallback(GLFWwindow* window)
 	// Draw light sphere since lightSphere holds the light source that will illuminate the object
 	lightSphere->draw(view, projection, shaderProgram);
 	lobby->draw(view, projection, shaderProgram);
+	userAstronaut->draw(view, projection, eyePos, shaderProgram);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

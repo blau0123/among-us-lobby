@@ -56,7 +56,10 @@ public:
 	static PointCloud* bunnyPoints;
 	static PointCloud* sandalPoints;
 	static PointCloud* bearPoints;
+
 	static AmongUsObject* lobby;
+	static AmongUsObject* userAstronaut;
+
 	static LightSource* lightSphere;
 
 	/* Scene Graph nodes

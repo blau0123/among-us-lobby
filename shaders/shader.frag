@@ -22,8 +22,11 @@ uniform float shininess;
 
 uniform int render_mode;
 uniform int is_ground;
+uniform int use_texture;
+uniform int use_toon;
 
 uniform vec3 viewPos;
+uniform vec3 viewDir;
 
 // Used to determine the texture to assign the texture to the diffuse component
 uniform sampler2D tex;
@@ -71,8 +74,21 @@ void main()
         diffuse *= attenuation;
         specular *= attenuation;
 
-        diffuse = vec3(texture(tex, fragTexCoord));
+        if (use_texture == 1)
+            diffuse = vec3(texture(tex, fragTexCoord));
         resultColor = ambient + diffuse + specular;
+    }
+
+    // If this fragment is an edge fragment (for toon shading), then draw as black (to be the black outline)
+    if (use_toon == 1) {
+        // Determine if edge, and if it is an edge, set the color as black
+        float edge = max(0, dot(viewDir, fragNormal));
+        if (edge < 0.5) {
+            resultColor = vec3(0.0, 0.0, 0.0);
+        }
+        else {
+            // Not an edge fragment, so need to calculate intensity of color at this fragment 
+        }
     }
 
     // Use the color passed in. An alpha of 1.0f means it is not transparent.

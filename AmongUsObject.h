@@ -30,19 +30,26 @@ private:
 	// Determines if we are rotating the object or not --> 0 = ROTATE
 	int movement;
 
+	// If = 0, don't map object to a texture; if = 1, map to texture
+	int useTex;
+	int useToon;
+
 	// vbo_v holds position (vertex) data, vbo_n holds vertex normal data, ebo holds index data
 	GLuint vao, vbo_v, vbo_n, vbo_t, ebo;
 
 public:
-	AmongUsObject(std::string filename);
+	AmongUsObject(std::string filename, int useTexture, int useToonShading);
 	~AmongUsObject();
 
 	void draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader);
+	void draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader);
 	void update();
 
 	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s);
 
 	GLuint loadTexture(std::string texLocation);
+
+	void transform(glm::mat4 transformMatrix);
 
 	// For trackball rotation of lobby about its center
 	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);

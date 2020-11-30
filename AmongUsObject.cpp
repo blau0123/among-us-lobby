@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-AmongUsObject::AmongUsObject(std::string filename) {
+AmongUsObject::AmongUsObject(std::string filename, int useTexture, int useToonShading) {
 	std::ifstream objFile(filename);
 	// Hold the indices for vertices and normals in order to get a vertices and normals vector with same ordering
 	std::vector<int> vertexIndices;
@@ -112,10 +112,11 @@ AmongUsObject::AmongUsObject(std::string filename) {
 
 	// Set the model matrix to an identity matrix. 
 	model = glm::mat4(1);
-	model = glm::scale(glm::vec3(0.45f, 0.45f, 0.45f)) * model;
 
 	// Initialize rotation variables
 	movement = -1;
+	useTex = useTexture;
+	useToon = useToonShading;
 	lastCursorPos = glm::vec3(0.0f);
 
 	// Generate a Vertex Array (VAO) and Vertex Buffer Object (VBO)
@@ -213,6 +214,42 @@ GLuint AmongUsObject::loadTexture(std::string texLocation) {
 	return texId;
 }
 
+// Will call this draw with viewDir if need to use toon shading (among us astronauts)
+void AmongUsObject::draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader) {
+	// Actiavte the shader program 
+	glUseProgram(shader);
+
+	// Get the shader variable locations and send the uniform data to the shader 
+	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
+	glUniform3fv(glGetUniformLocation(shader, "viewDir"), 1, glm::value_ptr(viewDir));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(glGetUniformLocation(shader, "color"), 1, glm::value_ptr(color));
+
+	glUniform3fv(glGetUniformLocation(shader, "k_diffuse"), 1, glm::value_ptr(k_diffuse));
+	glUniform3fv(glGetUniformLocation(shader, "k_specular"), 1, glm::value_ptr(k_specular));
+	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
+	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
+	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 0);
+	glUniform1i(glGetUniformLocation(shader, "tex"), 0);
+	glUniform1i(glGetUniformLocation(shader, "use_texture"), useTex);
+	glUniform1i(glGetUniformLocation(shader, "use_toon"), useToon);
+
+	// Pass in which render mode we are in (normal, Phong)
+	glUniform1i(glGetUniformLocation(shader, "render_mode"), 1);
+
+	// Bind the VAO
+	glBindVertexArray(vao);
+
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	// Draw the points using triangles, indexed with the EBO
+	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
+
+	// Unbind the VAO and shader program
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
+
 void AmongUsObject::draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader)
 {
 	// Actiavte the shader program 
@@ -230,6 +267,8 @@ void AmongUsObject::draw(const glm::mat4& view, const glm::mat4& projection, GLu
 	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
 	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 0);
 	glUniform1i(glGetUniformLocation(shader, "tex"), 0);
+	glUniform1i(glGetUniformLocation(shader, "use_texture"), useTex);
+	glUniform1i(glGetUniformLocation(shader, "use_toon"), useToon);
 
 	// Pass in which render mode we are in (normal, Phong)
 	glUniform1i(glGetUniformLocation(shader, "render_mode"), 1);
@@ -251,6 +290,10 @@ void AmongUsObject::update()
 {
 }
 
+// If want to scale/translate this object
+void AmongUsObject::transform(glm::mat4 transformMatrix) {
+	model = transformMatrix * model;
+}
 
 void AmongUsObject::initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos) {
 	// Turn on user interactive rotations
