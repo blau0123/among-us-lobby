@@ -355,6 +355,7 @@ glm::vec3 AmongUsObject::trackBallMapping(int windowWidth, int windowHeight, glm
 
 void AmongUsObject::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s) {
 	// Set the uniform variable for k for diffuse, specular, ambient for this specific object
+	std::cout << "diffuse " << k_d.x << std::endl;
 	k_diffuse = k_d;
 	k_specular = k_s;
 	k_ambient = k_a;

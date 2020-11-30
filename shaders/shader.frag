@@ -77,17 +77,30 @@ void main()
         if (use_texture == 1)
             diffuse = vec3(texture(tex, fragTexCoord));
         resultColor = ambient + diffuse + specular;
-    }
 
-    // If this fragment is an edge fragment (for toon shading), then draw as black (to be the black outline)
-    if (use_toon == 1) {
-        // Determine if edge, and if it is an edge, set the color as black
-        float edge = max(0, dot(viewDir, fragNormal));
-        if (edge < 0.5) {
-            resultColor = vec3(0.0, 0.0, 0.0);
-        }
-        else {
-            // Not an edge fragment, so need to calculate intensity of color at this fragment 
+         // If use toon shading for this object
+        if (use_toon == 1) {
+            // Determine if edge, and if it is an edge, set the color as black (to be black outline)
+            float edge = max(0, dot(viewDir, fragNormal));
+            if (edge < 0.5) {
+                resultColor = vec3(0.0, 0.0, 0.0);
+            }
+            else {
+                // Not an edge fragment, so need to calculate intensity of color at this fragment 
+                float intensity = diff * spec;
+                if (intensity > 0.95) {
+                    resultColor = vec3(1.0, 1.0, 1.0) * resultColor;
+                }
+                else if (intensity > 0.5) {
+                    resultColor = vec3(0.7, 0.7, 0.7) * resultColor;
+                }
+                else if (intensity > 0.05) {
+                    resultColor = vec3(0.35, 0.35, 0.35) * resultColor;
+                }
+                else {
+                    resultColor = vec3(0.1, 0.1, 0.1) * resultColor;
+                }
+            }
         }
     }
 

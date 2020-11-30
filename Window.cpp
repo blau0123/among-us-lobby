@@ -358,10 +358,10 @@ bool Window::initializeObjects()
 	
 	userAstronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 1);
 	userAstronaut->setModelMaterialProperties(
-		glm::vec3(0.50754, 0.50754, 0.50754),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.19225, 0.19225, 0.19225),
-		0.1f * 128
+		glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
+		glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
+		glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
+		0.0f * 128
 	);
 	userAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
 

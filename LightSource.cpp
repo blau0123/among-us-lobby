@@ -80,7 +80,7 @@ LightSource::LightSource(std::string objFilename, GLfloat pointSize)
 	glm::vec3 diff = glm::vec3(x_half, y_half, z_half) - lightPosition;
 
 	// Initialize light source parameters
-	lightPosition = glm::vec3(0.0f, 0.0f, 10.0f);
+	lightPosition = glm::vec3(0.0f, 0.0f, 30.0f);
 	lightColor = glm::vec3(1.0f, 0.5f, 0.31f);
 
 	// Initialize rotation variables
