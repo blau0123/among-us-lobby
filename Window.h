@@ -9,6 +9,7 @@
 #include "LightSource.h"
 #include "Sphere.h"
 #include "AmongUsObject.h"
+#include "Lobby.h"
 
 #include "Transform.h"
 #include "Geometry.h"

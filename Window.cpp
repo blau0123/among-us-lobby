@@ -115,7 +115,7 @@ bool Window::initializeSceneGraph() {
 	World->addChild(scaleAstronaut);
 
 	// Create lobby object
-	lobby = new AmongUsObject("obj/among_us/amongus_lobby.obj", 1, 1, 0);
+	lobby = new Lobby("obj/among_us/amongus_lobby.obj", 1, 1, 0);
 	lobby->setModelMaterialProperties(
 		glm::vec3(0.50754, 0.50754, 0.50754),
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -131,7 +131,6 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
 		0.0f * 128
 	);
-	((AmongUsObject*)userAstronaut)->setBoundingSphere(1.0f, glm::vec3(0,0,0));
 
 	scaleLobby->addChild(lobby);
 	scaleAstronaut->addChild(userAstronaut);
@@ -142,10 +141,10 @@ bool Window::initializeSceneGraph() {
 bool Window::initializeObjects()
 {
 	// Create cubemap as our skybox
-	cube = new Cube(&cubemapTextureID);
+	// cube = new Cube(&cubemapTextureID);
 
 	// Create tesselated sphere
-	sphere = new Sphere();
+	// sphere = new Sphere();
 
 	lightSphere = new LightSource("obj/sphere.obj", 10);
 	lightSphere->setModelMaterialProperties(
@@ -414,7 +413,7 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			glm::vec2 pos(xpos, ypos);
-			((AmongUsObject*)lobby)->initRotateModel(Window::width, Window::height, pos);
+			((Lobby*)lobby)->initRotateModel(Window::width, Window::height, pos);
 			/* If rotateType = 1, rotate model; if 2, rotate light source; if 3, rotate both
 			if (rotateType == 1 || rotateType == 3)
 				((PointCloud*)currObj)->initRotateModel(Window::width, Window::height, pos);
@@ -429,14 +428,14 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 			if (rotateType == 2 || rotateType == 3)
 				lightSphere->endRotateModel();
 			*/
-			((AmongUsObject*)lobby)->endRotateModel();
+			((Lobby*)lobby)->endRotateModel();
 		}
 	}
 }
 
 void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
 	glm::vec2 curPos(xpos, ypos);
-	((AmongUsObject*)lobby)->rotateModel(Window::width, Window::height, curPos);
+	((Lobby*)lobby)->rotateModel(Window::width, Window::height, curPos);
 
 	/*
 	if (rotateType == 1 || rotateType == 3)
@@ -517,7 +516,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			break;
 		case GLFW_KEY_N:
 			// Switch rendering mode between normal coloring and Phong illumination model
-			((PointCloud*)currObj)->changeRenderingMode();
+			//((PointCloud*)currObj)->changeRenderingMode();
 			break;
 		default:
 			break;
