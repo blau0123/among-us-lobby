@@ -11,13 +11,20 @@ AmongUsObject::AmongUsObject(std::string filename, int bfCull, int useTexture, i
 	lastCursorPos = glm::vec3(0.0f);
 }
 
+AmongUsObject::~AmongUsObject() {
+	delete boundingSphere;
+}
+
 void AmongUsObject::update()
 {
 }
 
-// If want to scale/translate this object
-void AmongUsObject::transform(glm::mat4 transformMatrix) {
-	model = transformMatrix * model;
+void AmongUsObject::setBoundingSphere(float r, glm::vec3 pos) {
+	boundingSphere = new BoundingSphere(r, pos);
+}
+
+BoundingSphere* AmongUsObject::getBoundingSphere() {
+	return boundingSphere;
 }
 
 void AmongUsObject::initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos) {

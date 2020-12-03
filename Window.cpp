@@ -131,6 +131,7 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
 		0.0f * 128
 	);
+	((AmongUsObject*)userAstronaut)->setBoundingSphere(1.0f, glm::vec3(0,0,0));
 
 	scaleLobby->addChild(lobby);
 	scaleAstronaut->addChild(userAstronaut);

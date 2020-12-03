@@ -19,14 +19,16 @@ private:
 	int movement;
 
 	// Bounding sphere for this astronaut to  check for collisions
-	BoundingSphere boundingSphere;
+	BoundingSphere* boundingSphere;
 
 public:
 	AmongUsObject(std::string filename, int bfCull, int useTexture, int useToonShading);
+	~AmongUsObject();
 
 	void update();
 
-	void transform(glm::mat4 transformMatrix);
+	BoundingSphere* getBoundingSphere();
+	void setBoundingSphere(float r, glm::vec3 pos);
 
 	// For trackball rotation of lobby about its center
 	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);
