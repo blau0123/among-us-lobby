@@ -3,8 +3,10 @@
 #include <sstream>
 #include <iostream>
 
-Geometry::Geometry(std::string filename, int bfCull) {
+Geometry::Geometry(std::string filename, int bfCull, int useTexture, int useToonShading) {
 	name = filename;
+	useTex = useTexture;
+	useToon = useToonShading;
 	requiresBackfaceCull = bfCull;
 	init(filename);
 }
@@ -15,6 +17,7 @@ Geometry::~Geometry()
 	glDeleteBuffers(1, &vboVertex);
 	glDeleteBuffers(1, &vboNormals);
 	glDeleteBuffers(1, &eboIndices);
+	glDeleteBuffers(1, &vbo_t);
 	glDeleteVertexArrays(1, &vao);
 }
 
@@ -23,6 +26,7 @@ void Geometry::init(std::string filename) {
 	// Hold the indices for vertices and normals in order to get a vertices and normals vector with same ordering
 	std::vector<int> vertexIndices;
 	std::vector<int> normalIndices;
+	std::vector<int> texIndices;
 
 	// Check whether the file can be opened before reading
 	if (objFile.is_open()) {
@@ -52,6 +56,11 @@ void Geometry::init(std::string filename) {
 				ss >> vNorm.x >> vNorm.y >> vNorm.z;
 				vertexNorms.push_back(vNorm);
 			}
+			else if (label == "vt") {
+				glm::vec2 tex;
+				ss >> tex.x >> tex.y;
+				texCoords.push_back(tex);
+			}
 			else if (label == "f") {
 				glm::ivec3 faceIndices;
 				// Get the three vertex-vertex normal index pairs (the x, y, z)
@@ -72,6 +81,12 @@ void Geometry::init(std::string filename) {
 				lastX = pairsX.find("/", lastX) + 1;
 				lastY = pairsY.find("/", lastY) + 1;
 				lastZ = pairsZ.find("/", lastZ) + 1;
+
+				// std::cout << "1st: " << pairsX.find("/", 0) + 1 << "; 2nd: " << pairsX.find("/", lastX) << std::endl;
+				texIndices.push_back(std::stoi(pairsX.substr(pairsX.find("/", 0) + 1, pairsX.find("/", lastX))));
+				texIndices.push_back(std::stoi(pairsY.substr(pairsY.find("/", 0) + 1, pairsY.find("/", lastY))));
+				texIndices.push_back(std::stoi(pairsZ.substr(pairsZ.find("/", 0) + 1, pairsZ.find("/", lastZ))));
+
 				normalIndices.push_back(std::stoi(pairsX.substr(pairsX.find("/", lastX) + 1)));
 				normalIndices.push_back(std::stoi(pairsY.substr(pairsY.find("/", lastY) + 1)));
 				normalIndices.push_back(std::stoi(pairsZ.substr(pairsZ.find("/", lastZ) + 1)));
@@ -84,18 +99,27 @@ void Geometry::init(std::string filename) {
 
 	objFile.close();
 
+	std::cout << "Number of points read for object " << filename << ": " << vertices.size() << std::endl;
+	std::cout << "Number of vertex norms read for object " << filename << ": " << vertexNorms.size() << std::endl;
+	std::cout << "Number of faces read for object " << filename << ": " << indices.size() << std::endl;
+
 	// For each vertex of each triangle, add the vertex position with it's corresponding normal
 	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
 		// Get the vertex and normal from the given index
 		int vertexIndex = vertexIndices[i];
 		int normIndex = normalIndices[i];
+		int texIndex = texIndices[i];
+		// std::cout << texIndex << std::endl;
+		// std::cout << "About to access vertex index: " << vertexIndex << std::endl;
 		glm::vec3 vertex = vertices[vertexIndex - 1];
-		glm::vec3 normal = vertexNorms[vertexIndex - 1];
+		glm::vec3 normal = vertexNorms[normIndex - 1];
+		glm::vec2 tex = texCoords[texIndex - 1];
 		out_vertices.push_back(vertex);
 		out_normals.push_back(normal);
+		out_tex.push_back(tex);
 	}
 
-	for (unsigned int i = 0; i < vertexIndices.size() - 2; i+=3) {
+	for (unsigned int i = 0; i < vertexIndices.size() - 2; i += 3) {
 		glm::ivec3 index;
 		index.x = i;
 		index.y = i + 1;
@@ -110,6 +134,7 @@ void Geometry::init(std::string filename) {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vboVertex);
 	glGenBuffers(1, &vboNormals);
+	glGenBuffers(1, &vbo_t);
 
 	// Bind VAO
 	glBindVertexArray(vao);
@@ -134,6 +159,16 @@ void Geometry::init(std::string filename) {
 	// Location for the vertex norm layout variable in the vertex shader
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
+	// Bind vbo_t to the bound VAO, and store the texture data
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_t);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNorms.size(), vertexNorms.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)* out_tex.size(), &out_tex[0], GL_STATIC_DRAW);
+
+	// Enable Vertex Attribute 1 to pass vertex norm data to the shader
+	glEnableVertexAttribArray(2);
+	// Location for the vertex norm layout variable in the vertex shader
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
 	// Generate EBO, bind the EBO to the bound VAO, and send the index data
 	glGenBuffers(1, &eboIndices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboIndices);
@@ -147,7 +182,39 @@ void Geometry::init(std::string filename) {
 	std::cout << "Finished initing Geometry obj " << name << std::endl;
 }
 
-void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
+GLuint Geometry::loadTexture(std::string texLocation) {
+	GLuint texId;
+	// Get unique ID for texture, and tell OpenGL which texture to edit
+	glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set bi-linear interpolation
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // for both filtering modes
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // set texture edge mode
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Note: nrChannels = number of color channels
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	// Note: data[0] = first px's R, data[1] = first px's G, data[2] = first px's B, data[3] = 2nd px's R, etc.
+	unsigned char* data = stbi_load(texLocation.c_str(), &width, &height, &nrChannels, 0);
+	if (data) {
+		// Loads image into OpenGL texture in GPU memory
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+	else {
+		std::string fail_reason = "";
+		if (stbi_failure_reason())
+			fail_reason = stbi_failure_reason();
+		std::cout << "Texture failed to load at path: " << texLocation << " due to reason: " << fail_reason << std::endl;
+		stbi_image_free(data);
+	}
+	std::cout << "Successfully loaded texture " << texLocation << std::endl;
+	textureId = texId;
+	return texId;
+}
+
+void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader) {
 	// Apply the parent's transformations to the Geometry's model so that it is in the correct position relative to the parent
 	//model = C;
 	glm::mat4 matToPass = C * model;
@@ -158,6 +225,7 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 
 	// Get the shader variable locations and send the uniform data to the shader 
 	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
+	glUniform3fv(glGetUniformLocation(shader, "viewDir"), 1, glm::value_ptr(viewDir));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(matToPass));
 	
@@ -166,6 +234,9 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 	glUniform3fv(glGetUniformLocation(shader, "k_ambient"), 1, glm::value_ptr(k_ambient));
 	glUniform1f(glGetUniformLocation(shader, "shininess"), shininess);
 	glUniform1i(glGetUniformLocation(shader, "isLightSource"), 0);
+	glUniform1i(glGetUniformLocation(shader, "tex"), 0);
+	glUniform1i(glGetUniformLocation(shader, "use_texture"), useTex);
+	glUniform1i(glGetUniformLocation(shader, "use_toon"), useToon);
 
 	// Pass in which render mode we are in (normal, Phong)
 	glUniform1i(glGetUniformLocation(shader, "render_mode"), 1);
@@ -175,6 +246,8 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 	glBindVertexArray(vao);
 	if (requiresBackfaceCull == 1) 
 		glDisable(GL_CULL_FACE);
+	if (useTex == 1)
+		glBindTexture(GL_TEXTURE_2D, textureId);
 
 	// Draw the points using triangles, indexed with the EBO
 	glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
@@ -185,10 +258,6 @@ void Geometry::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& 
 	// Unbind the VAO and shader program
 	glBindVertexArray(0);
 	glUseProgram(0);
-}
-
-void Geometry::transform(glm::mat4 transformMatrix) {
-	model = transformMatrix * model;
 }
 
 void Geometry::setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s) {

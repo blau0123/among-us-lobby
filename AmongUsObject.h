@@ -1,7 +1,8 @@
-#ifndef _LOBBY_H_
-#define _LOBBY_H_
+#ifndef _AMONG_US_OBJECT_H_
+#define _AMONG_US_OBJECT_H_
 
-#include "Object.h"
+#include "Geometry.h"
+#include "BoundingSphere.h"
 
 #include <vector>
 #include <string>
@@ -9,45 +10,21 @@
 
 using namespace std;
 
-class AmongUsObject : public Object
+class AmongUsObject : public Geometry
 {
 private:
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec3> vertexNorms;
-	std::vector<glm::vec2> texCoords;
-	std::vector<glm::ivec3> indices;
-
-	// These will hold vertices and normals with the same ordering, so that vertices and normals are matched
-	std::vector<glm::vec3> out_vertices;
-	std::vector<glm::vec3> out_normals;
-	std::vector<glm::vec2> out_tex;
-	std::vector<glm::ivec3> out_indices;
-
 	glm::vec3 lastCursorPos;
-
-	GLuint textureId;
 
 	// Determines if we are rotating the object or not --> 0 = ROTATE
 	int movement;
 
-	// If = 0, don't map object to a texture; if = 1, map to texture
-	int useTex;
-	int useToon;
-
-	// vbo_v holds position (vertex) data, vbo_n holds vertex normal data, ebo holds index data
-	GLuint vao, vbo_v, vbo_n, vbo_t, ebo;
+	// Bounding sphere for this astronaut to  check for collisions
+	BoundingSphere boundingSphere;
 
 public:
-	AmongUsObject(std::string filename, int useTexture, int useToonShading);
-	~AmongUsObject();
+	AmongUsObject(std::string filename, int bfCull, int useTexture, int useToonShading);
 
-	void draw(const glm::mat4& view, const glm::mat4& projection, GLuint shader);
-	void draw(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader);
 	void update();
-
-	void setModelMaterialProperties(glm::vec3 k_d, glm::vec3 k_s, glm::vec3 k_a, float s);
-
-	GLuint loadTexture(std::string texLocation);
 
 	void transform(glm::mat4 transformMatrix);
 

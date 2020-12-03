@@ -83,6 +83,9 @@
     <ClInclude Include="AmongUsObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BoundingSphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

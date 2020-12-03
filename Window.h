@@ -57,10 +57,18 @@ public:
 	static PointCloud* sandalPoints;
 	static PointCloud* bearPoints;
 
-	static AmongUsObject* lobby;
-	static AmongUsObject* userAstronaut;
-
 	static LightSource* lightSphere;
+
+	/*
+	Scene graph for among us
+	World -- scaleLobby -- lobby
+		|
+		-- scaleAstronaut -- astronaut (for every astronaut)
+	*/
+	static Transform* scaleLobby;
+	static Transform* scaleAstronaut;
+	static Geometry* lobby;
+	static Geometry* userAstronaut;
 
 	/* Scene Graph nodes
 		World -- translateGround -- translatePole -- rotateWheel -- translateWheel -- scaleSupport -- (translateSupport -- support) repeat for each support pole
@@ -118,9 +126,9 @@ public:
 
 	static unsigned int cubemapTextureID;
 
-	static bool createRideCars();
-	static bool createAttachPoles();
-	static bool createSupportPoles();
+	//static bool createRideCars();
+	//static bool createAttachPoles();
+	//static bool createSupportPoles();
 
 	// Constructors and Destructors
 	static bool initializeProgram();

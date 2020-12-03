@@ -17,7 +17,7 @@ Transform::~Transform() {
 	//}
 }
 
-void Transform::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) {
+void Transform::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader) {
 	// C = model matrix of parent (for world, C = 4x4 identity matrix) aka transformation of parent
 	// Do M * C to transform the current geometry/transform based on the parent's transformation
 	glm::mat4 matToPass = C * M;
@@ -25,7 +25,7 @@ void Transform::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4&
 	// Loop through all children and call their draw's
 	for (Node* child : children) {
 		// Pass in transform matrix so that child knows where to be relative to this transform
-		child->draw(matToPass, view, projection, shader);
+		child->draw(matToPass, view, projection, viewDir, shader);
 	}
 }
 

@@ -112,6 +112,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingSphere.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="LightSource.h" />

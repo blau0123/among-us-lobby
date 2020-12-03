@@ -23,7 +23,7 @@ Common base class for all nodes in the Scene Graph.
 class Node 
 {
 public:
-	virtual void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, GLuint shader) = 0;
+	virtual void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader) = 0;
 	// Used to separate bounding sphere updates from rendering
 	virtual void update() = 0;
 };
