@@ -62,16 +62,24 @@ public:
 
 	/*
 	Scene graph for among us
-	World -- scaleLobby -- rotateLobby -- lobby
-		|
-		-- scaleAstronaut -- rotateAstronaut -- astronaut (for every astronaut)
+	World -- rotateWorld -- scaleLobby -- lobby
+						|
+						-- translateAstronaut -- scaleAstronaut -- astronaut (for every astronaut)
 	*/
+	static Transform* World;
+	static Transform* rotateWorld;
 	static Transform* scaleLobby;
 	static Transform* rotateLobby;
 	static Transform* scaleAstronaut;
+	static Transform* translateAstronaut;
 	static Transform* rotateAstronaut;
 	static Geometry* lobby;
 	static Geometry* userAstronaut;
+
+	// Vector of bounding spheres representing the obstacles (loop through to
+	// check if colliding with an obstacle)
+	static std::vector<BoundingSphere*> obstacles;
+	// static std::vector<BoundingPlane*> walls;
 
 	static Geometry* testSphere;
 	static Transform* transformSphere;
@@ -90,34 +98,11 @@ public:
 					|
 					 -- scaleGround -- translateGroundBack -- ground
 	*/
-	static Transform* World;
-	static Transform* translateGround;
-	static Transform* scaleGround;
-	static Transform* translateGroundBack;
-	static Transform* translatePole;
-	static Transform* scalePole;
-	static Transform* translateWheelUpAndDown;
-	static Transform* translateWheel;
-	static Transform* scaleWheel;
-	static Transform* rotateWheel;
-	static Transform* scaleSupportPoleLeft;
-	static Transform* scaleSupportPoleRight;
-	static Transform* scaleSupportPoleFront;
-	static Transform* scaleSupportPoleBack;
-	static Transform* rotateSupportPoleX;
-	static Transform* rotateSupportPoleZ;
-	static Transform* scaleAttachPole;
-	static std::vector<Transform*> translateCars;
-	static std::vector<Transform*> rotateCars;
 
-	static Geometry* ground;
-	static Geometry* pole;
-	static Geometry* wheel;
-	static Geometry* car;
-	static Geometry* car2;
-	static std::vector<Geometry*> cars;
-	static std::vector<Geometry*> attachPoles;
-	static std::vector<Geometry*> supportPoles;
+	// Trackball rotation
+	static glm::vec3 lastCursorPos;
+	// Determines if we are rotating the object or not --> 0 = ROTATE
+	static int movement;
 
 	// Camera Matrices
 	static glm::mat4 projection;
@@ -157,6 +142,12 @@ public:
 	static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 	static void onMouseButtonDown(GLFWwindow* window, int button, int action, int mods);
 	static void onMouseMove(GLFWwindow* window, double xpos, double ypos);
+
+	// For trackball rotation of lobby about its center
+	static void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);
+	static std::pair<glm::vec3, float> rotateModel(int windowWidth, int windowHeight, glm::vec2 currCursorPos);
+	static void endRotateModel();
+	static glm::vec3 trackBallMapping(int windowWidth, int windowHeight, glm::vec2 cursorPos);
 };
 
 #endif

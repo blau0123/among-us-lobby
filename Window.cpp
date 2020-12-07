@@ -17,6 +17,10 @@ float Window::counter = 14.0f;
 int Window::upOrDown = -1;
 int Window::moving = -1;
 
+// Trackball rotation
+glm::vec3 Window::lastCursorPos;
+int Window::movement = -1;
+
 // Objects to Render
 Cube * Window::cube;
 Sphere* Window::sphere;
@@ -30,8 +34,10 @@ Geometry* Window::lobby;
 Geometry* Window::userAstronaut;
 Geometry* Window::testSphere;
 Transform* Window::transformSphere;
+Transform* Window::rotateWorld;
 Transform* Window::rotateLobby;
 Transform* Window::scaleLobby;
+Transform* Window::translateAstronaut;
 Transform* Window::rotateAstronaut;
 Transform* Window::scaleAstronaut;
 
@@ -42,33 +48,6 @@ unsigned int Window::cubemapTextureID;
 
 // Scene Graph nodes
 Transform* Window::World;
-Transform* Window::translateGround;
-Transform* Window::scaleGround;
-Transform* Window::translateGroundBack;
-Transform* Window::translatePole;
-Transform* Window::scalePole;
-Transform* Window::translateWheelUpAndDown;
-Transform* Window::translateWheel;
-Transform* Window::scaleWheel;
-Transform* Window::rotateWheel;
-Transform* Window::rotateSupportPoleX;
-Transform* Window::rotateSupportPoleZ;
-Transform* Window::scaleAttachPole;
-Transform* Window::scaleSupportPoleLeft;
-Transform* Window::scaleSupportPoleRight;
-Transform* Window::scaleSupportPoleFront;
-Transform* Window::scaleSupportPoleBack;
-std::vector<Transform*> Window::translateCars;
-std::vector<Transform*> Window::rotateCars;
-
-Geometry* Window::ground;
-Geometry* Window::pole;
-Geometry* Window::wheel;
-Geometry* Window::car;
-Geometry* Window::car2;
-std::vector<Geometry*> Window::cars;
-std::vector<Geometry*> Window::attachPoles;
-std::vector<Geometry*> Window::supportPoles;
 
 // Camera Matrices 
 // Projection matrix:
@@ -109,7 +88,8 @@ bool Window::initializeProgram() {
 bool Window::initializeSceneGraph() {
 	// Set up scene graph and connections
 	// Create all transformations
-	testSphere = new Geometry("obj/texsphere.obj", 0, 0, 0);
+	// Left obstacle: pos = (6.00624,2.30415,-1.10025), r = 1.43041
+	testSphere = new AmongUsObject("obj/texsphere.obj", 0, 0, 0);
 	testSphere->setModelMaterialProperties(
 		glm::vec3(0.50754, 0.50754, 0.50754),
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -117,23 +97,30 @@ bool Window::initializeSceneGraph() {
 		0.1f * 128
 	);
 	transformSphere = new Transform();
-	transformSphere->transform(glm::translate(glm::vec3(-8.0f, -5.0f, 5.0f)));
+	transformSphere->transform(glm::translate(glm::vec3(-16.5f, -9.7f, 2.8f)) * glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
 	transformSphere->addChild(testSphere);
 
 	World = new Transform();
+	rotateWorld = new Transform();
+	rotateWorld->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 	scaleLobby = new Transform();
 	scaleLobby->transform(glm::scale(glm::vec3(0.45f, 0.45f, 0.45f)));
 	rotateLobby = new Transform();
 	rotateLobby->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 	scaleAstronaut = new Transform();
 	scaleAstronaut->transform(glm::scale(glm::vec3(0.9f, 0.9f, 0.9f)));
+	translateAstronaut = new Transform();
+	translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
 	rotateAstronaut = new Transform();
 	rotateAstronaut->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 
-	World->addChild(scaleLobby);
-	scaleLobby->addChild(rotateLobby);
-	World->addChild(scaleAstronaut);
-	scaleAstronaut->addChild(rotateAstronaut);
+	//World->addChild(rotateLobby);
+	//rotateLobby->addChild(scaleLobby);
+	World->addChild(rotateWorld);
+	rotateWorld->addChild(scaleLobby);
+	rotateWorld->addChild(translateAstronaut);
+	translateAstronaut->addChild(scaleAstronaut);
+	//rotateAstronaut->addChild(scaleAstronaut);
 
 	// Create lobby object
 	lobby = new Lobby("obj/among_us/amongus_lobby.obj", 1, 1, 0);
@@ -153,8 +140,8 @@ bool Window::initializeSceneGraph() {
 		0.0f * 128
 	);
 
-	rotateLobby->addChild(lobby);
-	rotateAstronaut->addChild(userAstronaut);
+	scaleLobby->addChild(lobby);
+	scaleAstronaut->addChild(userAstronaut);
 	return true;
 }
 
@@ -201,38 +188,6 @@ void Window::cleanUp()
 
 	// Deallocate scene graph nodes
 	delete World;
-	delete translateGround;
-	delete translateGroundBack;
-	delete translatePole;
-	delete scalePole;
-	delete translateWheelUpAndDown;
-	delete translateWheel;
-	delete scaleWheel;
-	delete rotateWheel;
-	delete rotateSupportPoleX;
-	delete rotateSupportPoleZ;
-	delete scaleSupportPoleLeft;
-	delete scaleSupportPoleRight;
-	delete scaleSupportPoleFront;
-	delete scaleSupportPoleBack;
-	delete scaleAttachPole;
-
-	delete ground;
-	delete pole;
-	delete wheel;
-	delete car;
-	delete car2;
-
-	for (int i = 0; i < translateCars.size(); i++) {
-		delete rotateCars[i];
-		delete translateCars[i];
-		delete cars[i];
-		delete attachPoles[i];
-	}
-
-	for (int i = 0; i < supportPoles.size(); i++) {
-		delete supportPoles[i];
-	}
 
 	// Delete the shader program.
 	glDeleteProgram(shaderProgram);
@@ -435,20 +390,84 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			glm::vec2 pos(xpos, ypos);
-			((Lobby*)lobby)->initRotateModel(Window::width, Window::height, pos);
-			((AmongUsObject*)userAstronaut)->initRotateModel(Window::width, Window::height, pos);
+			// Init rotate for the world
+			initRotateModel(Window::width, Window::height, pos);
+			//((Lobby*)lobby)->initRotateModel(Window::width, Window::height, pos);
+			//((AmongUsObject*)userAstronaut)->initRotateModel(Window::width, Window::height, pos);
 		}
 		else if (action == GLFW_RELEASE) {
-			((Lobby*)lobby)->endRotateModel();
-			((AmongUsObject*)userAstronaut)->endRotateModel();
+			//((Lobby*)lobby)->endRotateModel();
+			//((AmongUsObject*)userAstronaut)->endRotateModel();
+			endRotateModel();
 		}
 	}
 }
 
 void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
 	glm::vec2 curPos(xpos, ypos);
-	((Lobby*)lobby)->rotateModel(Window::width, Window::height, curPos);
-	((AmongUsObject*)userAstronaut)->rotateModel(Window::width, Window::height, curPos);
+	//((Lobby*)lobby)->rotateModel(Window::width, Window::height, curPos);
+	//((AmongUsObject*)userAstronaut)->rotateModel(Window::width, Window::height, curPos);
+	std::pair<glm::vec3, float> rotateAxisAndAngle = rotateModel(Window::width, Window::height, curPos);
+	if (rotateAxisAndAngle.second != 0.0f)
+		rotateWorld->transform(glm::rotate(glm::radians(rotateAxisAndAngle.second), rotateAxisAndAngle.first));
+}
+
+void Window::initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos) {
+	// Turn on user interactive rotations
+	movement = 0;
+
+	// Map the mouse position to a logical sphere location and keep track of the last known mouse position
+	lastCursorPos = trackBallMapping(windowWidth, windowHeight, cursorPos);
+
+	// Set the OpenGL state to modify the MODELVIEW matrix
+	glMatrixMode(GL_MODELVIEW);
+}
+
+std::pair<glm::vec3, float> Window::rotateModel(int windowWidth, int windowHeight, glm::vec2 currCursorPos) {
+	glm::vec3 currSpherePos, rotateDirection;
+	float rot_angle;
+
+	// Check which type of movement we are doing
+	if (movement == 0) {
+		// Map this mouse position to it's logical sphere location
+		currSpherePos = trackBallMapping(windowWidth, windowHeight, currCursorPos);
+
+		// Determine the direction that the object should be rotated in logical sphere
+		rotateDirection = currSpherePos - lastCursorPos;
+		float velocity = glm::length(rotateDirection);
+
+		// Only rotate if there is a decent amount of movement
+		if (velocity > 0.0001f) {
+			// Rotate about the axis that is perpendicular to the two points
+			glm::vec3 rotAxis = glm::cross(lastCursorPos, currSpherePos);
+			rot_angle = velocity * 8;
+			return std::make_pair(rotAxis, rot_angle);
+		}
+
+		// Save the current point location for the next movement
+		lastCursorPos = currSpherePos;
+	}
+
+	return std::make_pair(glm::vec3(), 0.0f);
+}
+
+void Window::endRotateModel() {
+	// Turn off rotation
+	movement = -1;
+}
+
+// Calculate 3D position of a projected unit vector onto the xy-plane
+glm::vec3 Window::trackBallMapping(int windowWidth, int windowHeight, glm::vec2 cursorPos) {
+	glm::vec3 v;
+	float d;
+	v.x = (2.0 * cursorPos.x - windowWidth) / windowWidth;
+	v.y = (windowHeight - 2.0 * cursorPos.y) / windowHeight;
+	v.z = 0.0f;
+	d = glm::length(v);
+	d = (d < 1.0f) ? d : 1.0f;
+	v.z = sqrtf(1.001f - d * d);
+	v = glm::normalize(v);
+	return v;
 }
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
