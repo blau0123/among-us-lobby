@@ -28,7 +28,11 @@ PointCloud* Window::bearPoints;
 // Among us geometries and transforms
 Geometry* Window::lobby;
 Geometry* Window::userAstronaut;
+Geometry* Window::testSphere;
+Transform* Window::transformSphere;
+Transform* Window::rotateLobby;
 Transform* Window::scaleLobby;
+Transform* Window::rotateAstronaut;
 Transform* Window::scaleAstronaut;
 
 LightSource* Window::lightSphere;
@@ -105,14 +109,31 @@ bool Window::initializeProgram() {
 bool Window::initializeSceneGraph() {
 	// Set up scene graph and connections
 	// Create all transformations
+	testSphere = new Geometry("obj/texsphere.obj", 0, 0, 0);
+	testSphere->setModelMaterialProperties(
+		glm::vec3(0.50754, 0.50754, 0.50754),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.19225, 0.19225, 0.19225),
+		0.1f * 128
+	);
+	transformSphere = new Transform();
+	transformSphere->transform(glm::translate(glm::vec3(-8.0f, -5.0f, 5.0f)));
+	transformSphere->addChild(testSphere);
+
 	World = new Transform();
 	scaleLobby = new Transform();
 	scaleLobby->transform(glm::scale(glm::vec3(0.45f, 0.45f, 0.45f)));
+	rotateLobby = new Transform();
+	rotateLobby->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 	scaleAstronaut = new Transform();
-	scaleAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
+	scaleAstronaut->transform(glm::scale(glm::vec3(0.9f, 0.9f, 0.9f)));
+	rotateAstronaut = new Transform();
+	rotateAstronaut->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 
 	World->addChild(scaleLobby);
+	scaleLobby->addChild(rotateLobby);
 	World->addChild(scaleAstronaut);
+	scaleAstronaut->addChild(rotateAstronaut);
 
 	// Create lobby object
 	lobby = new Lobby("obj/among_us/amongus_lobby.obj", 1, 1, 0);
@@ -132,8 +153,8 @@ bool Window::initializeSceneGraph() {
 		0.0f * 128
 	);
 
-	scaleLobby->addChild(lobby);
-	scaleAstronaut->addChild(userAstronaut);
+	rotateLobby->addChild(lobby);
+	rotateAstronaut->addChild(userAstronaut);
 	return true;
 }
 
@@ -144,7 +165,7 @@ bool Window::initializeObjects()
 	// cube = new Cube(&cubemapTextureID);
 
 	// Create tesselated sphere
-	// sphere = new Sphere();
+	//sphere = new Sphere();
 
 	lightSphere = new LightSource("obj/sphere.obj", 10);
 	lightSphere->setModelMaterialProperties(
@@ -176,6 +197,7 @@ void Window::cleanUp()
 	delete userAstronaut;
 	delete scaleLobby;
 	delete scaleAstronaut;
+	delete testSphere;
 
 	// Deallocate scene graph nodes
 	delete World;
@@ -333,7 +355,7 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Render among us scene graph
 	World->draw(glm::mat4(1), view, projection, eyePos, shaderProgram);
-
+	transformSphere->draw(glm::mat4(1), view, projection, eyePos, shaderProgram);
 	// Draw light sphere since lightSphere holds the light source that will illuminate the object
 	lightSphere->draw(view, projection, shaderProgram);
 
@@ -414,21 +436,11 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 			glfwGetCursorPos(window, &xpos, &ypos);
 			glm::vec2 pos(xpos, ypos);
 			((Lobby*)lobby)->initRotateModel(Window::width, Window::height, pos);
-			/* If rotateType = 1, rotate model; if 2, rotate light source; if 3, rotate both
-			if (rotateType == 1 || rotateType == 3)
-				((PointCloud*)currObj)->initRotateModel(Window::width, Window::height, pos);
-			if (rotateType == 2 || rotateType == 3)
-				lightSphere->initRotateModel(Window::width, Window::height, pos);
-			*/
+			((AmongUsObject*)userAstronaut)->initRotateModel(Window::width, Window::height, pos);
 		}
 		else if (action == GLFW_RELEASE) {
-			/* When release the mouse click, stop rotating
-			if (rotateType == 1 || rotateType == 3)
-				((PointCloud*)currObj)->endRotateModel();
-			if (rotateType == 2 || rotateType == 3)
-				lightSphere->endRotateModel();
-			*/
 			((Lobby*)lobby)->endRotateModel();
+			((AmongUsObject*)userAstronaut)->endRotateModel();
 		}
 	}
 }
@@ -436,13 +448,7 @@ void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int m
 void Window::onMouseMove(GLFWwindow* window, double xpos, double ypos) {
 	glm::vec2 curPos(xpos, ypos);
 	((Lobby*)lobby)->rotateModel(Window::width, Window::height, curPos);
-
-	/*
-	if (rotateType == 1 || rotateType == 3)
-		((PointCloud*)currObj)->rotateModel(Window::width, Window::height, curPos);
-	if (rotateType == 2 || rotateType == 3)
-		lightSphere->rotateModel(Window::width, Window::height, curPos);
-	*/
+	((AmongUsObject*)userAstronaut)->rotateModel(Window::width, Window::height, curPos);
 }
 
 void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)

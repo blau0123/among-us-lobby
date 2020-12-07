@@ -15,6 +15,9 @@ class AmongUsObject : public Geometry
 private:
 	// Bounding sphere for this astronaut to  check for collisions
 	BoundingSphere* boundingSphere;
+	// Determines if we are rotating the object or not --> 0 = ROTATE
+	int movement;
+	glm::vec3 lastCursorPos;
 
 public:
 	AmongUsObject(std::string filename, int bfCull, int useTexture, int useToonShading);
@@ -25,6 +28,12 @@ public:
 
 	BoundingSphere* getBoundingSphere();
 	void setBoundingSphere(float r, glm::vec3 pos);
+
+	// For trackball rotation of lobby about its center
+	void initRotateModel(int windowWidth, int windowHeight, glm::vec2 cursorPos);
+	void rotateModel(int windowWidth, int windowHeight, glm::vec2 currCursorPos);
+	void endRotateModel();
+	glm::vec3 trackBallMapping(int windowWidth, int windowHeight, glm::vec2 cursorPos);
 };
 
 #endif

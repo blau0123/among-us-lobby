@@ -62,14 +62,19 @@ public:
 
 	/*
 	Scene graph for among us
-	World -- scaleLobby -- lobby
+	World -- scaleLobby -- rotateLobby -- lobby
 		|
-		-- scaleAstronaut -- astronaut (for every astronaut)
+		-- scaleAstronaut -- rotateAstronaut -- astronaut (for every astronaut)
 	*/
 	static Transform* scaleLobby;
+	static Transform* rotateLobby;
 	static Transform* scaleAstronaut;
+	static Transform* rotateAstronaut;
 	static Geometry* lobby;
 	static Geometry* userAstronaut;
+
+	static Geometry* testSphere;
+	static Transform* transformSphere;
 
 	/* Scene Graph nodes
 		World -- translateGround -- translatePole -- rotateWheel -- translateWheel -- scaleSupport -- (translateSupport -- support) repeat for each support pole

@@ -91,7 +91,7 @@ Sphere::Sphere()
 	// Scale the sphere so it's bigger on the screen
 	model = glm::scale(glm::vec3(1.5f, 1.5f, 1.5f)) * model;
 	model = glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * model;
-	model = glm::translate(glm::vec3(0.0f, 5.0f, 0.0f)) * model;
+	model = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f)) * model;
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
