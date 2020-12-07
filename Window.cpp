@@ -299,7 +299,7 @@ void Window::idleCallback()
 
 	if (moving != -1) {
 		// The user is holding a key to move/turn the camera
-		updateCameraIfKeyHold();
+		updatePlayerIfKeyHold();
 	}
 }
 
@@ -319,6 +319,27 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Swap buffers.
 	glfwSwapBuffers(window);
+}
+
+void Window::updatePlayerIfKeyHold() {
+	switch (moving) {
+	case 0:
+		// move player forward (up) using translateAstronaut -- move in -z direction
+		translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
+		break;
+	case 1:
+		// move player backward (down) using translateAstronaut -- move in +z direction
+		translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
+		break;
+	case 2:
+		// move player left -- move in -x direction
+		translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.0f)));
+		break;
+	case 3:
+		// move player right -- move in +x direction
+		translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.0f)));
+		break;
+	}
 }
 
 void Window::updateCameraIfKeyHold() {
@@ -375,6 +396,20 @@ void Window::updateCameraIfKeyHold() {
 
 void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 	// If y < 0, then scroll down & if y > 0, then scroll up
+	if (yoffset > 0) {
+		// move forward
+		eyePos = glm::translate(glm::vec3(0.0f, 0.0f, -0.2f)) * glm::vec4(eyePos, 1.0f);
+		lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, -0.2f)) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new eyePos
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+	}
+	else if (yoffset < 0) {
+		// moving backward
+		eyePos = glm::translate(glm::vec3(0.0f, 0.0f, 0.2f)) * glm::vec4(eyePos, 1.0f);
+		lookAtPoint = glm::translate(glm::vec3(0.0f, 0.0f, 0.2f)) * glm::vec4(lookAtPoint, 1.0f);
+		// Update view vector with new eyePos
+		view = glm::lookAt(eyePos, lookAtPoint, upVector);
+	}
 	/* If rotateType = 1, scale model; if 2, change distance of light from center; if 3, do both 1 and 2
 	if (rotateType == 1 || rotateType == 3)
 		((PointCloud*)currObj)->updateModelSize(yoffset);
@@ -512,8 +547,6 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			std::cout << "Switched to rotate type " << rotateType << std::endl;
 			break;
 		case GLFW_KEY_L:
-			// Increase point size
-			//((PointCloud*)currObj)->updatePointSize(sizeIncrement);
 			// Turn left -- translate lookAtPoint to make eyePos = it's origin, then rotate it about origin (eyePos), then
 			// translate back to original position
 			moving = 4;
@@ -528,7 +561,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			moving = 0;
 			break;
 		case GLFW_KEY_A:
-			// Move up
+			// Move left
 			moving = 2;
 			break;
 		case GLFW_KEY_S:
@@ -536,7 +569,7 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 			moving = 1;
 			break;
 		case GLFW_KEY_D:
-			// Move down
+			// Move right
 			moving = 3;
 			break;
 		case GLFW_KEY_N:

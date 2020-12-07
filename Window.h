@@ -117,10 +117,6 @@ public:
 
 	static unsigned int cubemapTextureID;
 
-	//static bool createRideCars();
-	//static bool createAttachPoles();
-	//static bool createSupportPoles();
-
 	// Constructors and Destructors
 	static bool initializeProgram();
 	static bool initializeObjects();
@@ -136,6 +132,7 @@ public:
 	static void displayCallback(GLFWwindow*);
 
 	static void updateCameraIfKeyHold();
+	static void updatePlayerIfKeyHold();
 
 	// Callbacks
 	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
