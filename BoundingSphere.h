@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 #include "stb_image.h"
 
 using namespace std;
@@ -26,7 +27,9 @@ private:
 
 public:
 	BoundingSphere(float r, glm::vec3 pos);
-	bool detectCollision(BoundingSphere otherSphere);
+	bool detectCollision(BoundingSphere* otherSphere);
+	float getRadius();
+	glm::vec3 getPosition();
 };
 
 #endif

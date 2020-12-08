@@ -35,8 +35,8 @@ PointCloud* Window::bunnyPoints;
 PointCloud* Window::sandalPoints;
 PointCloud* Window::bearPoints;
 
-// When render, will start by facing +z direction
-glm::vec3 Window::userDirection(0.0f, 0.0f, 1.0f);
+// When render, will start by facing -z direction
+glm::vec3 Window::userDirection(0.0f, 0.0f, -1.0f);
 
 // Among us geometries and transforms
 Geometry* Window::lobby;
@@ -49,7 +49,7 @@ Transform* Window::rotateWorld;
 Transform* Window::rotateLobby;
 Transform* Window::scaleLobby;
 Transform* Window::translateAstronaut;
-Transform* Window::rotateAstronaut;
+Transform* Window::rotateUserAstronaut;
 Transform* Window::scaleAstronaut;
 
 LightSource* Window::lightSphere;
@@ -122,14 +122,14 @@ bool Window::initializeSceneGraph() {
 	scaleAstronaut->transform(glm::scale(glm::vec3(0.9f, 0.9f, 0.9f)));
 	translateAstronaut = new Transform();
 	translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
-	rotateAstronaut = new Transform();
+	rotateUserAstronaut = new Transform();
 	// rotateAstronaut->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 
 	World->addChild(rotateWorld);
 	rotateWorld->addChild(scaleLobby);
 	rotateWorld->addChild(translateAstronaut);
-	translateAstronaut->addChild(rotateAstronaut);
-	rotateAstronaut->addChild(scaleAstronaut);
+	translateAstronaut->addChild(rotateUserAstronaut);
+	rotateUserAstronaut->addChild(scaleAstronaut);
 
 	// Create lobby object
 	lobby = new Lobby("obj/among_us/amongus_lobby.obj", 1, 1, 0);
@@ -143,7 +143,7 @@ bool Window::initializeSceneGraph() {
 
 	// Create bounding spheres for the obstacles in the lobby
 	// obstacles[0] = left box, obstacles[1] = right box
-	//obstacles[0] = new BoundingSphere(1.43041, glm::vec3(6.00624, 2.30415, -1.10025));
+	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(6.00624, 2.30415, -1.10025)));
 
 	userAstronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 	userAstronaut->setModelMaterialProperties(
@@ -196,6 +196,7 @@ void Window::cleanUp()
 	delete lobby;
 	delete userAstronaut;
 	delete scaleLobby;
+	delete rotateUserAstronaut;
 	delete scaleAstronaut;
 	delete testSphere;
 
@@ -315,6 +316,7 @@ void Window::idleCallback()
 	*/
 
 	if (moving != -1) {
+		//std::cout << "collision?" << detectUserCollisions() << std::endl;
 		// The user is holding a key to move/turn the camera
 		updatePlayerIfKeyHold();
 	}
@@ -338,7 +340,25 @@ void Window::displayCallback(GLFWwindow* window)
 	glfwSwapBuffers(window);
 }
 
+// if the user is colliding with something, don't let the user move in the current userDirection
+bool Window::detectUserCollisions() {
+	BoundingSphere* userSphere = ((AmongUsObject*)userAstronaut)->getBoundingSphere();
+
+	// Check collisions with any obstacles
+	for (int i = 0; i < obstacles.size(); i++) {
+		if (userSphere->detectCollision(obstacles[i])) {
+			return true;
+		}
+	}
+	// Check collisions with any walls
+	// Check collisions with any other astronauts
+	return false;
+}
+
 void Window::updatePlayerIfKeyHold() {
+	glm::vec3 rotateDirection;
+	float rot_angle;
+
 	if (is_W_down) {
 		if (is_A_down) {
 			// move diagonally top left
@@ -349,6 +369,13 @@ void Window::updatePlayerIfKeyHold() {
 			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, -0.01f)));
 		}
 		else {
+			// Rotate player to face upwards
+			glm::vec3 newDirection(0.0f, 0.0f, 1.0f);
+			if (newDirection != userDirection) {
+				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+				userDirection = newDirection;
+			}
+
 			// move up
 			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
 		}
@@ -363,18 +390,54 @@ void Window::updatePlayerIfKeyHold() {
 			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.01f)));
 		}
 		else {
+			// Rotate the astronaut to face down
+			glm::vec3 newDirection(0.0f, 0.0f, -1.0f);
+			if (newDirection != userDirection) {
+				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+				userDirection = newDirection;
+			}
+
 			// move down
 			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
 		}
 	}
 	if (is_A_down && !is_W_down && !is_S_down) {
+		// Rotate the astronaut to face left
+		glm::vec3 newDirection(-1.0f, 0.0f, 0.0f);
+		if (newDirection != userDirection) {
+			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+			userDirection = newDirection;
+		}
+
 		// Only A being pressed, so move left
 		translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.0f)));
 	}
 	if (is_D_down && !is_W_down && !is_S_down) {
+		// Rotate the astronaut to face right
+		glm::vec3 newDirection(1.0f, 0.0f, 0.0f);
+		if (newDirection != userDirection) {
+			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+			userDirection = newDirection;
+		}
+
 		// Only D being pressed, so move right
 		translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.0f)));
 	}
+}
+
+void Window::updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut) {
+	glm::vec3 rotateDirection = newDirection - currDirection;
+	float velocity = glm::length(rotateDirection);
+	glm::vec3 rotAxis = glm::cross(currDirection, newDirection);
+	float rot_angle = velocity * 90;
+
+	// If the rotation axis == (0,0,0), then the two vectors are antiparallel
+	if (rotAxis == glm::vec3(0, 0, 0)) {
+		rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+		rot_angle = 180;
+	}
+	std::cout << "Angle: " << rot_angle << "; rotAxis: " << rotAxis.x << ", " << rotAxis.y << ", " << rotAxis.z << std::endl;
+	rotateSpecificAstronaut->transform(glm::rotate(glm::radians(rot_angle), rotAxis));
 }
 
 void Window::updateCameraIfKeyHold() {

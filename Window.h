@@ -76,7 +76,7 @@ public:
 	static Transform* rotateLobby;
 	static Transform* scaleAstronaut;
 	static Transform* translateAstronaut;
-	static Transform* rotateAstronaut;
+	static Transform* rotateUserAstronaut;
 	static Geometry* lobby;
 	static Geometry* userAstronaut;
 
@@ -140,6 +140,9 @@ public:
 
 	static void updateCameraIfKeyHold();
 	static void updatePlayerIfKeyHold();
+	static bool detectUserCollisions();
+
+	static void updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut);
 
 	// Callbacks
 	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
