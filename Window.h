@@ -49,6 +49,10 @@ public:
 	moving == 5 --> turn right
 	*/
 	static int moving;
+	static bool is_W_down;
+	static bool is_A_down;
+	static bool is_S_down;
+	static bool is_D_down;
 
 	// Objects to Render
 	static Cube* cube;
@@ -64,7 +68,7 @@ public:
 	Scene graph for among us
 	World -- rotateWorld -- scaleLobby -- lobby
 						|
-						-- translateAstronaut -- scaleAstronaut -- astronaut (for every astronaut)
+						-- translateAstronaut -- rotateAstronaut -- scaleAstronaut -- astronaut (for every astronaut)
 	*/
 	static Transform* World;
 	static Transform* rotateWorld;
@@ -75,6 +79,9 @@ public:
 	static Transform* rotateAstronaut;
 	static Geometry* lobby;
 	static Geometry* userAstronaut;
+
+	// Records the direction that the user is currently facing/walking in (1.0f in the direction it's facing)
+	static glm::vec3 userDirection;
 
 	// Vector of bounding spheres representing the obstacles (loop through to
 	// check if colliding with an obstacle)

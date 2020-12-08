@@ -21,6 +21,12 @@ int Window::moving = -1;
 glm::vec3 Window::lastCursorPos;
 int Window::movement = -1;
 
+// For user movement
+bool Window::is_W_down = false;
+bool Window::is_A_down = false;
+bool Window::is_S_down = false;
+bool Window::is_D_down = false;
+
 // Objects to Render
 Cube * Window::cube;
 Sphere* Window::sphere;
@@ -29,10 +35,15 @@ PointCloud* Window::bunnyPoints;
 PointCloud* Window::sandalPoints;
 PointCloud* Window::bearPoints;
 
+// When render, will start by facing +z direction
+glm::vec3 Window::userDirection(0.0f, 0.0f, 1.0f);
+
 // Among us geometries and transforms
 Geometry* Window::lobby;
 Geometry* Window::userAstronaut;
+std::vector<BoundingSphere*> Window::obstacles;
 Geometry* Window::testSphere;
+
 Transform* Window::transformSphere;
 Transform* Window::rotateWorld;
 Transform* Window::rotateLobby;
@@ -112,15 +123,13 @@ bool Window::initializeSceneGraph() {
 	translateAstronaut = new Transform();
 	translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
 	rotateAstronaut = new Transform();
-	rotateAstronaut->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+	// rotateAstronaut->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 
-	//World->addChild(rotateLobby);
-	//rotateLobby->addChild(scaleLobby);
 	World->addChild(rotateWorld);
 	rotateWorld->addChild(scaleLobby);
 	rotateWorld->addChild(translateAstronaut);
-	translateAstronaut->addChild(scaleAstronaut);
-	//rotateAstronaut->addChild(scaleAstronaut);
+	translateAstronaut->addChild(rotateAstronaut);
+	rotateAstronaut->addChild(scaleAstronaut);
 
 	// Create lobby object
 	lobby = new Lobby("obj/among_us/amongus_lobby.obj", 1, 1, 0);
@@ -131,6 +140,10 @@ bool Window::initializeSceneGraph() {
 		0.1f * 128
 	);
 	lobby->loadTexture("textures/amongus_lobby.png");
+
+	// Create bounding spheres for the obstacles in the lobby
+	// obstacles[0] = left box, obstacles[1] = right box
+	//obstacles[0] = new BoundingSphere(1.43041, glm::vec3(6.00624, 2.30415, -1.10025));
 
 	userAstronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 	userAstronaut->setModelMaterialProperties(
@@ -185,6 +198,10 @@ void Window::cleanUp()
 	delete scaleLobby;
 	delete scaleAstronaut;
 	delete testSphere;
+
+	for (int i = 0; i < obstacles.size(); i++) {
+		delete obstacles[i];
+	}
 
 	// Deallocate scene graph nodes
 	delete World;
@@ -322,23 +339,41 @@ void Window::displayCallback(GLFWwindow* window)
 }
 
 void Window::updatePlayerIfKeyHold() {
-	switch (moving) {
-	case 0:
-		// move player forward (up) using translateAstronaut -- move in -z direction
-		translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
-		break;
-	case 1:
-		// move player backward (down) using translateAstronaut -- move in +z direction
-		translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
-		break;
-	case 2:
-		// move player left -- move in -x direction
+	if (is_W_down) {
+		if (is_A_down) {
+			// move diagonally top left
+			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, -0.01f)));
+		}
+		else if (is_D_down) {
+			// move diagonally top right
+			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, -0.01f)));
+		}
+		else {
+			// move up
+			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
+		}
+	}
+	if (is_S_down) {
+		if (is_A_down) {
+			// move diagonally bottom left
+			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.01f)));
+		}
+		else if (is_D_down) {
+			// move diagonally bottom right
+			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.01f)));
+		}
+		else {
+			// move down
+			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
+		}
+	}
+	if (is_A_down && !is_W_down && !is_S_down) {
+		// Only A being pressed, so move left
 		translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.0f)));
-		break;
-	case 3:
-		// move player right -- move in +x direction
+	}
+	if (is_D_down && !is_W_down && !is_S_down) {
+		// Only D being pressed, so move right
 		translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.0f)));
-		break;
 	}
 }
 
@@ -559,18 +594,22 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 		case GLFW_KEY_W:
 			// Move forward
 			moving = 0;
+			is_W_down = true;
 			break;
 		case GLFW_KEY_A:
 			// Move left
 			moving = 2;
+			is_A_down = true;
 			break;
 		case GLFW_KEY_S:
 			// Move backward
 			moving = 1;
+			is_S_down = true;
 			break;
 		case GLFW_KEY_D:
 			// Move right
 			moving = 3;
+			is_D_down = true;
 			break;
 		case GLFW_KEY_N:
 			// Switch rendering mode between normal coloring and Phong illumination model
@@ -582,6 +621,24 @@ void Window::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 	}
 	if (action == GLFW_RELEASE) {
 		// User has lifted key, so stop moving
+		switch (key) {
+		case GLFW_KEY_W:
+			// Move forward
+			is_W_down = false;
+			break;
+		case GLFW_KEY_A:
+			// Move left
+			is_A_down = false;
+			break;
+		case GLFW_KEY_S:
+			// Move backward
+			is_S_down = false;
+			break;
+		case GLFW_KEY_D:
+			// Move right
+			is_D_down = false;
+			break;
+		}
 		moving = -1;
 	}
 }
