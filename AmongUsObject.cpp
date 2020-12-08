@@ -19,6 +19,7 @@ AmongUsObject::AmongUsObject(std::string filename, int bfCull, int useTexture, i
 		x_max = std::max(x_max, vertices[i].x);
 		y_max = std::max(y_max, vertices[i].y);
 		z_max = std::max(z_max, vertices[i].z);
+
 		x_min = std::min(x_min, vertices[i].x);
 		y_min = std::min(y_min, vertices[i].y);
 		z_min = std::min(z_min, vertices[i].z);
@@ -44,6 +45,13 @@ AmongUsObject::~AmongUsObject() {
 
 void AmongUsObject::update()
 {
+}
+
+void AmongUsObject::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader)
+{
+	// Update the bounding sphere before calling Geometry's node to actually draw the among us object
+	boundingSphere->transformSphere(C);
+	Geometry::draw(C, view, projection, viewDir, shader);
 }
 
 void AmongUsObject::setBoundingSphere(float r, glm::vec3 pos) {

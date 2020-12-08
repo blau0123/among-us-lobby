@@ -25,6 +25,7 @@ public:
 
 	// Note: uses Geometry's draw method
 	void update();
+	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader);
 
 	BoundingSphere* getBoundingSphere();
 	void setBoundingSphere(float r, glm::vec3 pos);

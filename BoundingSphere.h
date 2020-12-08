@@ -30,6 +30,7 @@ public:
 	bool detectCollision(BoundingSphere* otherSphere);
 	float getRadius();
 	glm::vec3 getPosition();
+	bool transformSphere(const glm::mat4& C);
 };
 
 #endif

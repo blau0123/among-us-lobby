@@ -13,11 +13,19 @@ glm::vec3 BoundingSphere::getPosition() {
 	return position;
 }
 
+bool BoundingSphere::transformSphere(const glm::mat4& C) {
+	position = C * glm::vec4(position, 1.0f);
+	return true;
+}
+
 bool BoundingSphere::detectCollision(BoundingSphere* otherSphere) {
 	// Algorithm: if the sum of the squared radii > squared distance between the center points,
 	// then they intersect
 	float thisRadiusSqrd = radius * radius;
 	float otherRadiusSqrd = otherSphere->getRadius() * otherSphere->getRadius();
+	glm::vec3 pos = otherSphere->getPosition();
+	std::cout << "position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+	//std::cout << "sphere position: " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
 
 	float distX = position.x - (otherSphere->getPosition()).x;
 	distX *= distX;
