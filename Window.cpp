@@ -320,7 +320,7 @@ void Window::idleCallback()
 	*/
 
 	if (moving != -1) {
-		detectUserCollisions();
+		// detectUserCollisions();
 		// The user is holding a key to move/turn the camera
 		updatePlayerIfKeyHold();
 	}
@@ -374,6 +374,11 @@ void Window::updatePlayerIfKeyHold() {
 			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, -0.01f)));
 		}
 		else if (is_D_down) {
+			glm::vec3 newDirection(-1.0f, 0.0f, 1.0f);
+			if (newDirection != userDirection) {
+				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+				userDirection = newDirection;
+			}
 			// move diagonally top right
 			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, -0.01f)));
 		}
@@ -391,10 +396,20 @@ void Window::updatePlayerIfKeyHold() {
 	}
 	if (is_S_down) {
 		if (is_A_down) {
+			glm::vec3 newDirection(1.0f, 0.0f, -1.0f);
+			if (newDirection != userDirection) {
+				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+				userDirection = newDirection;
+			}
 			// move diagonally bottom left
 			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.01f)));
 		}
 		else if (is_D_down) {
+			glm::vec3 newDirection(-1.0f, 0.0f, -1.0f);
+			if (newDirection != userDirection) {
+				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+				userDirection = newDirection;
+			}
 			// move diagonally bottom right
 			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.01f)));
 		}
@@ -412,7 +427,7 @@ void Window::updatePlayerIfKeyHold() {
 	}
 	if (is_A_down && !is_W_down && !is_S_down) {
 		// Rotate the astronaut to face left
-		glm::vec3 newDirection(-1.0f, 0.0f, 0.0f);
+		glm::vec3 newDirection(1.0f, 0.0f, 0.0f);
 		if (newDirection != userDirection) {
 			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 			userDirection = newDirection;
@@ -423,7 +438,7 @@ void Window::updatePlayerIfKeyHold() {
 	}
 	if (is_D_down && !is_W_down && !is_S_down) {
 		// Rotate the astronaut to face right
-		glm::vec3 newDirection(1.0f, 0.0f, 0.0f);
+		glm::vec3 newDirection(-1.0f, 0.0f, 0.0f);
 		if (newDirection != userDirection) {
 			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 			userDirection = newDirection;
@@ -438,21 +453,20 @@ void Window::updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDire
 	glm::vec3 rotateDirection = newDirection - currDirection;
 	float velocity = glm::length(rotateDirection);
 	glm::vec3 rotAxis = glm::cross(currDirection, newDirection);
-	std::cout << "curr dir: " << currDirection.x << ", " << currDirection.y << ", " << currDirection.z << std::endl;
-	std::cout << "new dir: " << newDirection.x << ", " << newDirection.y << ", " << newDirection.z << std::endl;
+	//std::cout << "curr dir: " << currDirection.x << ", " << currDirection.y << ", " << currDirection.z << std::endl;
+	//std::cout << "new dir: " << newDirection.x << ", " << newDirection.y << ", " << newDirection.z << std::endl;
 
-	//float rot_angle = velocity * 90;
-	float dotProd = glm::dot(newDirection, currDirection);
-	std::cout << "dot prod: " << dotProd << std::endl;
-	float rot_angle = -glm::acos(dotProd);
+	float dotProd = glm::dot(glm::normalize(newDirection), glm::normalize(currDirection));
+	//std::cout << "dot prod: " << dotProd << std::endl;
+	float rot_angle = glm::acos(dotProd);
 
 	// If the rotation axis == (0,0,0), then the two vectors are antiparallel, so will flip by 180
 	if (rotAxis == glm::vec3(0, 0, 0)) {
 		rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
 		rot_angle = glm::radians(180.0f);
 	}
-	std::cout << "Angle: " << glm::degrees(rot_angle) << " degrees, " << rot_angle << " radians" << "; rotAxis: " << rotAxis.x << ", " << rotAxis.y << ", " << rotAxis.z << std::endl;
-	std::cout << "---------------------------------------------------------" << std::endl;
+	//std::cout << "Angle: " << glm::degrees(rot_angle) << " degrees, " << rot_angle << " radians" << "; rotAxis: " << rotAxis.x << ", " << rotAxis.y << ", " << rotAxis.z << std::endl;
+	//std::cout << "---------------------------------------------------------" << std::endl;
 	rotateSpecificAstronaut->transform(glm::rotate(rot_angle, rotAxis));
 }
 
