@@ -139,7 +139,7 @@ public:
 	static void displayCallback(GLFWwindow*);
 
 	static void updateCameraIfKeyHold();
-	static void updatePlayerIfKeyHold();
+	static void updatePlayerIfKeyHold(bool collision);
 	static bool detectUserCollisions();
 
 	static void updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut);

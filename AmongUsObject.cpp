@@ -50,12 +50,16 @@ void AmongUsObject::update()
 void AmongUsObject::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader)
 {
 	// Update the bounding sphere before calling Geometry's node to actually draw the among us object
-	boundingSphere->transformSphere(C);
+	//boundingSphere->transformSphere(C);
 	Geometry::draw(C, view, projection, viewDir, shader);
 }
 
 void AmongUsObject::setBoundingSphere(float r, glm::vec3 pos) {
 	boundingSphere = new BoundingSphere(r, pos);
+}
+
+void AmongUsObject::updateBoundingSphere(glm::mat4& translation) {
+	boundingSphere->setPosition(translation);
 }
 
 BoundingSphere* AmongUsObject::getBoundingSphere() {

@@ -101,6 +101,7 @@ bool Window::initializeSceneGraph() {
 	// Create all transformations
 	// Left obstacle: initPos = (6.00624,2.30415,-1.10025), r = 1.43041
 	// afterTrans = (-10.4938, -7.39585, 1.69975)
+	// maybe: (-4.3, 1.67846, -0.0611274)
 	testSphere = new AmongUsObject("obj/texsphere.obj", 0, 0, 0);
 	testSphere->setModelMaterialProperties(
 		glm::vec3(0.50754, 0.50754, 0.50754),
@@ -109,15 +110,19 @@ bool Window::initializeSceneGraph() {
 		0.1f * 128
 	);
 	transformSphere = new Transform();
-	transformSphere->transform(glm::translate(glm::vec3(-16.5f, -9.7f, 2.8f)) * glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
+	//transformSphere->transform(glm::translate(glm::vec3(-16.5f, -9.7f, 2.8f)) * glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
 	transformSphere->addChild(testSphere);
 
-	glm::vec4 s = glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)) * glm::translate(glm::vec3(-16.5f, -9.7f, 2.8f)) * glm::vec4(6.00624, 2.30415, -1.10025, 1.0f);
+	glm::vec4 s = glm::translate(glm::vec3(-16.5f, -9.7f, 2.8f)) * glm::vec4(6.00624, 2.30415, -1.10025, 1.0f);
 	// std::cout << "TEST SPHERE: " << s.x << ", " << s.y << ", " << s.z << std::endl;
 
 	World = new Transform();
 	rotateWorld = new Transform();
 	rotateWorld->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+
+	// REMOVE
+	rotateWorld->addChild(transformSphere);
+
 	scaleLobby = new Transform();
 	scaleLobby->transform(glm::scale(glm::vec3(0.45f, 0.45f, 0.45f)));
 	rotateLobby = new Transform();
@@ -127,7 +132,6 @@ bool Window::initializeSceneGraph() {
 	translateAstronaut = new Transform();
 	translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
 	rotateUserAstronaut = new Transform();
-	// rotateAstronaut->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 
 	World->addChild(rotateWorld);
 	rotateWorld->addChild(scaleLobby);
@@ -147,7 +151,7 @@ bool Window::initializeSceneGraph() {
 
 	// Create bounding spheres for the obstacles in the lobby
 	// obstacles[0] = left box, obstacles[1] = right box
-	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(-10.4938, -7.39585, 1.69975)));
+	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(-4.3, 1.67846, -0.0611274)));
 
 	userAstronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 	userAstronaut->setModelMaterialProperties(
@@ -293,36 +297,11 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 
 void Window::idleCallback()
 {
-	/* Updates to scene graph to animate the ride 
-	if (anim1) {
-		if (upOrDown == -1) {
-			translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, -0.01f, 0.0f)));
-			counter -= 0.01f;
-			// Wheel has reached min point, so now go back down
-			if (counter <= 5.0f)
-				upOrDown = 1;
-		}
-		else if (upOrDown == 1) {
-			translateWheelUpAndDown->transform(glm::translate(glm::vec3(0.0f, 0.01f, 0.0f)));
-			counter += 0.01f;
-			// Wheel has reached max point, so now go back down
-			if (counter >= 13.5f) {
-				upOrDown = -1;
-			}
-		}
-	}
-	if (anim2)
-		rotateWheel->transform(glm::rotate(glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f)));
-	if (anim3) {
-		for (int i = 0; i < rotateCars.size(); i++)
-			rotateCars[i]->transform(glm::rotate(glm::radians(-0.3f), glm::vec3(0.0f, 1.0f, 0.0f)));
-	}
-	*/
-
 	if (moving != -1) {
-		// detectUserCollisions();
+		bool hasCollided = detectUserCollisions();
+		std::cout << hasCollided << std::endl;
 		// The user is holding a key to move/turn the camera
-		updatePlayerIfKeyHold();
+		updatePlayerIfKeyHold(hasCollided);
 	}
 }
 
@@ -333,7 +312,6 @@ void Window::displayCallback(GLFWwindow* window)
 
 	// Render among us scene graph
 	World->draw(glm::mat4(1), view, projection, eyePos, shaderProgram);
-	transformSphere->draw(glm::mat4(1), view, projection, eyePos, shaderProgram);
 	// Draw light sphere since lightSphere holds the light source that will illuminate the object
 	lightSphere->draw(view, projection, shaderProgram);
 
@@ -359,19 +337,25 @@ bool Window::detectUserCollisions() {
 	return false;
 }
 
-void Window::updatePlayerIfKeyHold() {
+void Window::updatePlayerIfKeyHold(bool collision) {
 	glm::vec3 rotateDirection;
 	float rot_angle;
 
 	if (is_W_down) {
 		if (is_A_down) {
 			glm::vec3 newDirection(1.0f, 0.0f, 1.0f);
+			// If going in the same direction, don't need to update the astronaut direction
 			if (newDirection != userDirection) {
 				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 				userDirection = newDirection;
 			}
+			else if (collision) {
+				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+				return;
+			}
 			// move diagonally top left
 			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, -0.01f)));
+			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(-0.01f, 0.0f, -0.01f)));
 		}
 		else if (is_D_down) {
 			glm::vec3 newDirection(-1.0f, 0.0f, 1.0f);
@@ -379,8 +363,13 @@ void Window::updatePlayerIfKeyHold() {
 				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 				userDirection = newDirection;
 			}
+			else if (collision) {
+				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+				return;
+			}
 			// move diagonally top right
 			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, -0.01f)));
+			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.01f, 0.0f, -0.01f)));
 		}
 		else {
 			// Rotate player to face upwards
@@ -389,9 +378,13 @@ void Window::updatePlayerIfKeyHold() {
 				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 				userDirection = newDirection;
 			}
-
+			else if (collision) {
+				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+				return;
+			}
 			// move up
 			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
+			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
 		}
 	}
 	if (is_S_down) {
@@ -401,8 +394,13 @@ void Window::updatePlayerIfKeyHold() {
 				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 				userDirection = newDirection;
 			}
+			else if (collision) {
+				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+				return;
+			}
 			// move diagonally bottom left
 			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.01f)));
+			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(-0.01f, 0.0f, 0.01f)));
 		}
 		else if (is_D_down) {
 			glm::vec3 newDirection(-1.0f, 0.0f, -1.0f);
@@ -410,8 +408,13 @@ void Window::updatePlayerIfKeyHold() {
 				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 				userDirection = newDirection;
 			}
+			else if (collision) {
+				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+				return;
+			}
 			// move diagonally bottom right
 			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.01f)));
+			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.01f, 0.0f, 0.01f)));
 		}
 		else {
 			// Rotate the astronaut to face down
@@ -420,9 +423,13 @@ void Window::updatePlayerIfKeyHold() {
 				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 				userDirection = newDirection;
 			}
-
-			// move down
+			else if (collision) {
+				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+				return;
+			}
+			// move both astronaut and astronaut's bounding sphere down
 			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
+			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
 		}
 	}
 	if (is_A_down && !is_W_down && !is_S_down) {
@@ -432,20 +439,29 @@ void Window::updatePlayerIfKeyHold() {
 			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 			userDirection = newDirection;
 		}
-
+		else if (collision) {
+			// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+			return;
+		}
 		// Only A being pressed, so move left
 		translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.0f)));
+		((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(-0.01f, 0.0f, 0.0f)));
 	}
 	if (is_D_down && !is_W_down && !is_S_down) {
 		// Rotate the astronaut to face right
 		glm::vec3 newDirection(-1.0f, 0.0f, 0.0f);
 		if (newDirection != userDirection) {
+			std::cout << "update" << std::endl;
 			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
 			userDirection = newDirection;
 		}
-
+		else if (collision) {
+			// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+			return;
+		}
 		// Only D being pressed, so move right
 		translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.0f)));
+		((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.01f, 0.0f, 0.0f)));
 	}
 }
 

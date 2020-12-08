@@ -5,12 +5,31 @@ BoundingSphere::BoundingSphere(float r, glm::vec3 pos) {
 	position = pos;
 }
 
+void BoundingSphere::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader) {
+	// Loop through all children and call their draw's
+	for (Node* child : children) {
+		// Pass in transform matrix so that child knows where to be relative to this transform
+		child->draw(C, view, projection, viewDir, shader);
+	}
+}
+
+void BoundingSphere::update() {
+}
+
+void BoundingSphere::addChild(Node* child) {
+	children.push_back(child);
+}
+
 float BoundingSphere::getRadius() {
 	return radius;
 }
 
 glm::vec3 BoundingSphere::getPosition() {
 	return position;
+}
+
+void BoundingSphere::setPosition(glm::mat4& translation) {
+	position = translation * glm::vec4(position, 1.0f);
 }
 
 bool BoundingSphere::transformSphere(const glm::mat4& C) {
@@ -24,7 +43,7 @@ bool BoundingSphere::detectCollision(BoundingSphere* otherSphere) {
 	float thisRadiusSqrd = radius * radius;
 	float otherRadiusSqrd = otherSphere->getRadius() * otherSphere->getRadius();
 	glm::vec3 pos = otherSphere->getPosition();
-	std::cout << "position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+	//std::cout << "position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
 	//std::cout << "sphere position: " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
 
 	float distX = position.x - (otherSphere->getPosition()).x;

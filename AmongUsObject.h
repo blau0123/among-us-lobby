@@ -28,6 +28,7 @@ public:
 	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader);
 
 	BoundingSphere* getBoundingSphere();
+	void updateBoundingSphere(glm::mat4& translation);
 	void setBoundingSphere(float r, glm::vec3 pos);
 
 	// For trackball rotation of lobby about its center
