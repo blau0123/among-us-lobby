@@ -341,128 +341,40 @@ void Window::updatePlayerIfKeyHold(bool collision) {
 	glm::vec3 rotateDirection;
 	float rot_angle;
 
+	// The direction the user will face
+	glm::vec3 newDirection(0.0f, 0.0f, 0.0f);
+	// The direction and amount that the user will move
+	glm::vec3 moveDirection(0.0f, 0.0f, 0.0f);
 	if (is_W_down) {
-		if (is_A_down) {
-			glm::vec3 newDirection(1.0f, 0.0f, 1.0f);
-			// If going in the same direction, don't need to update the astronaut direction
-			if (newDirection != userDirection) {
-				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-				userDirection = newDirection;
-			}
-			else if (collision) {
-				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-				return;
-			}
-			// move diagonally top left
-			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, -0.01f)));
-			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(-0.01f, 0.0f, -0.01f)));
-		}
-		else if (is_D_down) {
-			glm::vec3 newDirection(-1.0f, 0.0f, 1.0f);
-			if (newDirection != userDirection) {
-				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-				userDirection = newDirection;
-			}
-			else if (collision) {
-				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-				return;
-			}
-			// move diagonally top right
-			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, -0.01f)));
-			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.01f, 0.0f, -0.01f)));
-		}
-		else {
-			// Rotate player to face upwards
-			glm::vec3 newDirection(0.0f, 0.0f, 1.0f);
-			if (newDirection != userDirection) {
-				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-				userDirection = newDirection;
-			}
-			else if (collision) {
-				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-				return;
-			}
-			// move up
-			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
-			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.0f, 0.0f, -0.01f)));
-		}
+		newDirection += glm::vec3(0.0f, 0.0f, 1.0f);
+		moveDirection += glm::vec3(0.0f, 0.0f, -0.01f);
+	}
+	if (is_A_down) {
+		newDirection += glm::vec3(1.0f, 0.0f, 0.0f);
+		moveDirection += glm::vec3(-0.01f, 0.0f, 0.0f);
 	}
 	if (is_S_down) {
-		if (is_A_down) {
-			glm::vec3 newDirection(1.0f, 0.0f, -1.0f);
-			if (newDirection != userDirection) {
-				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-				userDirection = newDirection;
-			}
-			else if (collision) {
-				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-				return;
-			}
-			// move diagonally bottom left
-			translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.01f)));
-			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(-0.01f, 0.0f, 0.01f)));
-		}
-		else if (is_D_down) {
-			glm::vec3 newDirection(-1.0f, 0.0f, -1.0f);
-			if (newDirection != userDirection) {
-				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-				userDirection = newDirection;
-			}
-			else if (collision) {
-				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-				return;
-			}
-			// move diagonally bottom right
-			translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.01f)));
-			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.01f, 0.0f, 0.01f)));
-		}
-		else {
-			// Rotate the astronaut to face down
-			glm::vec3 newDirection(0.0f, 0.0f, -1.0f);
-			if (newDirection != userDirection) {
-				updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-				userDirection = newDirection;
-			}
-			else if (collision) {
-				// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-				return;
-			}
-			// move both astronaut and astronaut's bounding sphere down
-			translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
-			((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
-		}
+		newDirection += glm::vec3(0.0f, 0.0f, -1.0f);
+		moveDirection += glm::vec3(0.0f, 0.0f, 0.01f);
 	}
-	if (is_A_down && !is_W_down && !is_S_down) {
-		// Rotate the astronaut to face left
-		glm::vec3 newDirection(1.0f, 0.0f, 0.0f);
-		if (newDirection != userDirection) {
-			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-			userDirection = newDirection;
-		}
-		else if (collision) {
-			// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-			return;
-		}
-		// Only A being pressed, so move left
-		translateAstronaut->transform(glm::translate(glm::vec3(-0.01f, 0.0f, 0.0f)));
-		((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(-0.01f, 0.0f, 0.0f)));
+	if (is_D_down) {
+		newDirection += glm::vec3(-1.0f, 0.0f, 0.0f);
+		moveDirection += glm::vec3(0.01f, 0.0f, 0.0f);
 	}
-	if (is_D_down && !is_W_down && !is_S_down) {
-		// Rotate the astronaut to face right
-		glm::vec3 newDirection(-1.0f, 0.0f, 0.0f);
-		if (newDirection != userDirection) {
-			std::cout << "update" << std::endl;
-			updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
-			userDirection = newDirection;
-		}
-		else if (collision) {
-			// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
-			return;
-		}
-		// Only D being pressed, so move right
-		translateAstronaut->transform(glm::translate(glm::vec3(0.01f, 0.0f, 0.0f)));
-		((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(0.01f, 0.0f, 0.0f)));
+
+	// Change the direction of the user if facing a new direction
+	if (newDirection != userDirection) {
+		updateAstronautDirection(newDirection, userDirection, rotateUserAstronaut);
+		userDirection = newDirection;
 	}
+	else if (collision) {
+		// If the astronaut is going in the same direction, but there's a collision, don't let the user keep moving in that direction
+		return;
+	}
+
+	// Move the user and its corresponding bounding sphere
+	translateAstronaut->transform(glm::translate(moveDirection));
+	((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(moveDirection));
 }
 
 void Window::updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut) {
