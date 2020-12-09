@@ -74,11 +74,16 @@ public:
 	static Transform* rotateWorld;
 	static Transform* scaleLobby;
 	static Transform* rotateLobby;
-	static Transform* scaleAstronaut;
-	static Transform* translateAstronaut;
+	static Transform* scaleUserAstronaut;
+	static Transform* translateUserAstronaut;
 	static Transform* rotateUserAstronaut;
 	static Geometry* lobby;
 	static Geometry* userAstronaut;
+
+	// allAstronauts and allAstroTransforms will be in same order (allAstro[i] corresponds to the transform allAstroTranslates[i])
+	static std::vector<Geometry*> allAstronauts;
+	static std::vector<Transform*> allAstroTranslates;
+	static std::vector<Transform*> allAstroRotates;
 
 	// Records the direction that the user is currently facing/walking in (1.0f in the direction it's facing)
 	static glm::vec3 userDirection;
@@ -87,6 +92,7 @@ public:
 	// check if colliding with an obstacle)
 	static std::vector<BoundingSphere*> obstacles;
 	static std::vector<BoundingPlane*> walls;
+	//static std::vector<BoundingSphere*> allAstronautsSpheres;
 
 	static Geometry* testSphere;
 	static Transform* transformSphere;
@@ -128,6 +134,7 @@ public:
 	static bool initializeProgram();
 	static bool initializeObjects();
 	static bool initializeSceneGraph();
+	static void initializeOtherAstronauts();
 	static void cleanUp();
 
 	// Window functions
@@ -140,7 +147,7 @@ public:
 
 	static void updateCameraIfKeyHold();
 	static void updatePlayerIfKeyHold(bool collision);
-	static bool detectCollisions(Geometry* obj, std::vector<BoundingSphere*> obstacles, std::vector<BoundingPlane*> walls);
+	static bool detectCollisions(Geometry* obj);
 
 	static void updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut);
 

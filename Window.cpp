@@ -41,6 +41,10 @@ glm::vec3 Window::userDirection(0.0f, 0.0f, -1.0f);
 // Among us geometries and transforms
 Geometry* Window::lobby;
 Geometry* Window::userAstronaut;
+std::vector<Geometry*> Window::allAstronauts;
+std::vector<Transform*> Window::allAstroTranslates;
+std::vector<Transform*> Window::allAstroRotates;
+
 std::vector<BoundingSphere*> Window::obstacles;
 std::vector<BoundingPlane*> Window::walls;
 Geometry* Window::testSphere;
@@ -49,9 +53,9 @@ Transform* Window::transformSphere;
 Transform* Window::rotateWorld;
 Transform* Window::rotateLobby;
 Transform* Window::scaleLobby;
-Transform* Window::translateAstronaut;
+Transform* Window::translateUserAstronaut;
 Transform* Window::rotateUserAstronaut;
-Transform* Window::scaleAstronaut;
+Transform* Window::scaleUserAstronaut;
 
 LightSource* Window::lightSphere;
 Object* currObj;
@@ -100,45 +104,25 @@ bool Window::initializeProgram() {
 bool Window::initializeSceneGraph() {
 	// Set up scene graph and connections
 	// Create all transformations
-	// Left obstacle: initPos = (6.00624,2.30415,-1.10025), r = 1.43041
-	// afterTrans = (-10.4938, -7.39585, 1.69975)
-	// maybe: (-4.3, 1.67846, -0.0611274)
-	testSphere = new AmongUsObject("obj/texsphere.obj", 0, 0, 0);
-	testSphere->setModelMaterialProperties(
-		glm::vec3(0.50754, 0.50754, 0.50754),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.19225, 0.19225, 0.19225),
-		0.1f * 128
-	);
-	transformSphere = new Transform();
-	//transformSphere->transform(glm::translate(glm::vec3(-16.5f, -9.7f, 2.8f)) * glm::scale(glm::vec3(2.0f, 2.0f, 2.0f)));
-	transformSphere->addChild(testSphere);
-
-	glm::vec4 s = glm::translate(glm::vec3(-16.5f, -9.7f, 2.8f)) * glm::vec4(6.00624, 2.30415, -1.10025, 1.0f);
-	// std::cout << "TEST SPHERE: " << s.x << ", " << s.y << ", " << s.z << std::endl;
-
 	World = new Transform();
 	rotateWorld = new Transform();
 	rotateWorld->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-
-	// REMOVE
-	rotateWorld->addChild(transformSphere);
 
 	scaleLobby = new Transform();
 	scaleLobby->transform(glm::scale(glm::vec3(0.45f, 0.45f, 0.45f)));
 	rotateLobby = new Transform();
 	rotateLobby->transform(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-	scaleAstronaut = new Transform();
-	scaleAstronaut->transform(glm::scale(glm::vec3(0.9f, 0.9f, 0.9f)));
-	translateAstronaut = new Transform();
-	translateAstronaut->transform(glm::translate(glm::vec3(0.0f, 0.0f, 5.0f)));
+	scaleUserAstronaut = new Transform();
+	scaleUserAstronaut->transform(glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
+	translateUserAstronaut = new Transform();
+	translateUserAstronaut->transform(glm::translate(glm::vec3(-0.5f, 0.0f, 6.0f)));
 	rotateUserAstronaut = new Transform();
 
 	World->addChild(rotateWorld);
 	rotateWorld->addChild(scaleLobby);
-	rotateWorld->addChild(translateAstronaut);
-	translateAstronaut->addChild(rotateUserAstronaut);
-	rotateUserAstronaut->addChild(scaleAstronaut);
+	rotateWorld->addChild(translateUserAstronaut);
+	translateUserAstronaut->addChild(rotateUserAstronaut);
+	rotateUserAstronaut->addChild(scaleUserAstronaut);
 
 	// Create lobby object
 	lobby = new Lobby("obj/among_us/amongus_lobby.obj", 1, 1, 0);
@@ -152,18 +136,18 @@ bool Window::initializeSceneGraph() {
 
 	// Create bounding spheres for the obstacles in the lobby
 	// obstacles[0] = left box, obstacles[1] = right box
-	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(-4.3, 1.67846, -0.0611274)));
-	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(4.74001, 1.67846, -1.56113)));
+	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(-4.38001, 0.839228, 5.02942)));
+	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(4.73001, 0.839228, 3.52939)));
 
 	// Creating bounding planes for the walls 
 	// walls[0] = left wall, walls[1] = stairs wall, walls[2] = right wall, walls[3] = right diag wall
 	// walls[4] = bottom wall, walls[5] = left diag wall
-	walls.push_back(new BoundingPlane(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-7.55008, 1.67846, -2.22113)));
-	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-0.0499996, 1.67846, -4.57112)));
-	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(7.53008, 1.67846, -3.56112)));
-	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(6.67006, 1.67846, 3.33887)));
-	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.799999, 1.67846, 4.37888)));
-	walls.push_back(new BoundingPlane(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(-6.99006, 1.67846, 3.73887)));
+	walls.push_back(new BoundingPlane(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-7.83008, 0.839228, 2.86939)));
+	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0300001, 0.839228, 1.14939)));
+	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(7.73008, 0.839228, 2.75939)));
+	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(6.64006, 0.839228, 8.6895)));
+	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.19, 0.839228, 9.83953)));
+	walls.push_back(new BoundingPlane(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(-6.81006, 0.839228, 8.6595)));
 
 	userAstronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 	userAstronaut->setModelMaterialProperties(
@@ -172,10 +156,60 @@ bool Window::initializeSceneGraph() {
 		glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
 		0.0f * 128
 	);
+	// Update the bounding sphere to match the model
+	((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(glm::vec3(-0.5f, 0.0f, 6.0f)) *
+		glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
 
 	scaleLobby->addChild(lobby);
-	scaleAstronaut->addChild(userAstronaut);
+	scaleUserAstronaut->addChild(userAstronaut);
+
+	// Add user-controlled astronaut to allAstronauts
+	allAstronauts.push_back(userAstronaut);
+	allAstroTranslates.push_back(translateUserAstronaut);
+	allAstroRotates.push_back(rotateUserAstronaut);
+
+	// Initialize all other astronauts that will be in the lobby
+	initializeOtherAstronauts();
+
 	return true;
+}
+
+void Window::initializeOtherAstronauts() {
+	Geometry* astronaut;
+	Transform* scaleAstronaut;
+	Transform* translateAstronaut;
+	Transform* rotateAstronaut;
+	for (int i = 0; i < 3; i++) {
+		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
+		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
+		astronaut->setModelMaterialProperties(
+			glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
+			glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
+			glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
+			0.0f * 128
+		);
+		// Update the bounding sphere to match the model
+		((AmongUsObject*)astronaut)->updateBoundingSphere(glm::translate(glm::vec3((float)i, 0.0f, 2.5f)) *
+			glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
+
+		// Set up initial scale and position for this astronaut
+		scaleAstronaut = new Transform();
+		scaleAstronaut->transform(glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
+		translateAstronaut = new Transform();
+		translateAstronaut->transform(glm::translate(glm::vec3((float)i, 0.0f, 2.5f)));
+		rotateAstronaut = new Transform();
+
+		// Attach this astronaut to the scene graph to be rendered
+		rotateWorld->addChild(translateAstronaut);
+		translateAstronaut->addChild(rotateAstronaut);
+		rotateAstronaut->addChild(scaleAstronaut);
+		scaleAstronaut->addChild(astronaut);
+
+		// Add this astronaut to the list of astronauts
+		allAstronauts.push_back(astronaut);
+		allAstroTranslates.push_back(translateAstronaut);
+		allAstroRotates.push_back(rotateAstronaut);
+	}
 }
 
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
@@ -208,10 +242,9 @@ void Window::cleanUp()
 
 	// Deallocate among us scene graph nodes
 	delete lobby;
-	delete userAstronaut;
+	//delete userAstronaut;
 	delete scaleLobby;
 	delete rotateUserAstronaut;
-	delete scaleAstronaut;
 	delete testSphere;
 
 	for (int i = 0; i < obstacles.size(); i++) {
@@ -220,6 +253,12 @@ void Window::cleanUp()
 
 	for (int i = 0; i < walls.size(); i++) {
 		delete walls[i];
+	}
+
+	for (int i = 0; i < allAstronauts.size(); i++) {
+		delete allAstronauts[i];
+		delete allAstroTranslates[i];
+		delete allAstroRotates[i];
 	}
 
 	// Deallocate scene graph nodes
@@ -308,10 +347,22 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 void Window::idleCallback()
 {
 	if (moving != -1) {
-		bool hasCollided = detectCollisions(userAstronaut, obstacles, walls);
-		//std::cout << hasCollided << std::endl;
+		bool hasCollided = detectCollisions(userAstronaut);
 		// The user is holding a key to move/turn the camera
 		updatePlayerIfKeyHold(hasCollided);
+	}
+
+	// Move all astronauts randomly
+	for (int i = 0; i < allAstronauts.size(); i++) {
+		Geometry* currAstro = allAstronauts[i];
+		Transform* currAstroTranslate = allAstroTranslates[i];
+		// If the current astro is the user, don't randomly move the user
+		if (userAstronaut == currAstro)
+			continue;
+		//if (detectCollisions(currAstro))
+			//continue;
+		currAstroTranslate->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
+		((AmongUsObject*)currAstro)->updateBoundingSphere(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
 	}
 }
 
@@ -333,23 +384,32 @@ void Window::displayCallback(GLFWwindow* window)
 }
 
 // if the user is colliding with something, don't let the user move in the current userDirection
-bool Window::detectCollisions(Geometry* obj, std::vector<BoundingSphere*> obstacles, std::vector<BoundingPlane*> walls) {
-	BoundingSphere* userSphere = ((AmongUsObject*)obj)->getBoundingSphere();
+bool Window::detectCollisions(Geometry* obj) {
+	BoundingSphere* bSphere = ((AmongUsObject*)obj)->getBoundingSphere();
 
 	// Check collisions with any obstacles
 	for (int i = 0; i < obstacles.size(); i++) {
-		if (userSphere->detectCollision(obstacles[i])) {
+		if (bSphere->detectCollision(obstacles[i])) {
+			//std::cout << "Collided with sphere at " << obstacles[i]->getPosition().x << ", " << obstacles[i]->getPosition().y << ", " << obstacles[i]->getPosition().z << std::endl;
 			return true;
 		}
 	}
 	// Check collisions with any walls
 	for (int i = 0; i < walls.size(); i++) {
-		if (userSphere->detectCollisionWithWall(walls[i])) {
+		if (bSphere->detectCollisionWithWall(walls[i])) {
+			//std::cout << "Collided with wall at " << walls[i]->getPosition().x << ", " << walls[i]->getPosition().y << ", " << walls[i]->getPosition().z << std::endl;
 			return true;
 		}
 	}
 
-	// Check collisions with any other astronauts
+	// Check collisions with any other astronauts (that isn't this astronaut)
+	for (int i = 0; i < allAstronauts.size(); i++) {
+		BoundingSphere* otherSphere = ((AmongUsObject*)allAstronauts[i])->getBoundingSphere();
+		if (obj != allAstronauts[i] && bSphere->detectCollision(otherSphere)) {
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -389,7 +449,7 @@ void Window::updatePlayerIfKeyHold(bool collision) {
 	}
 
 	// Move the user and its corresponding bounding sphere
-	translateAstronaut->transform(glm::translate(moveDirection));
+	translateUserAstronaut->transform(glm::translate(moveDirection));
 	((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(moveDirection));
 }
 
@@ -482,12 +542,6 @@ void Window::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) 
 		// Update view vector with new eyePos
 		view = glm::lookAt(eyePos, lookAtPoint, upVector);
 	}
-	/* If rotateType = 1, scale model; if 2, change distance of light from center; if 3, do both 1 and 2
-	if (rotateType == 1 || rotateType == 3)
-		((PointCloud*)currObj)->updateModelSize(yoffset);
-	if (rotateType == 2 || rotateType == 3)
-		lightSphere->updateLightPositionToCenter(yoffset);
-	*/
 }
 
 void Window::onMouseButtonDown(GLFWwindow* window, int button, int action, int mods) {
