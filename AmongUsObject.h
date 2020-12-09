@@ -15,6 +15,9 @@ class AmongUsObject : public Geometry
 private:
 	// Bounding sphere for this astronaut to  check for collisions
 	BoundingSphere* boundingSphere;
+	// True if this object is currently rendered on screen (used for when non-user
+	// astronauts will appear and disappear)
+	bool renderObj;
 	// Determines if we are rotating the object or not --> 0 = ROTATE
 	int movement;
 	glm::vec3 lastCursorPos;
@@ -26,6 +29,9 @@ public:
 	// Note: uses Geometry's draw method
 	void update();
 	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader);
+
+	bool shouldRenderObj();
+	void setShouldRenderObj(bool r);
 
 	BoundingSphere* getBoundingSphere();
 	void updateBoundingSphere(glm::mat4& translation);

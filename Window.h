@@ -87,6 +87,7 @@ public:
 
 	// Records the direction that the user is currently facing/walking in (1.0f in the direction it's facing)
 	static glm::vec3 userDirection;
+	static std::vector<glm::vec3> allAstroDirections;
 
 	// Vector of bounding spheres representing the obstacles (loop through to
 	// check if colliding with an obstacle)
@@ -150,6 +151,7 @@ public:
 	static bool detectCollisions(Geometry* obj);
 
 	static void updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut);
+	static std::vector<glm::vec3> getAstronautColors();
 
 	// Callbacks
 	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

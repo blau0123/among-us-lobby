@@ -8,6 +8,7 @@ AmongUsObject::AmongUsObject(std::string filename, int bfCull, int useTexture, i
 	: Geometry(filename, bfCull, useTexture, useToonShading)
 {
 	movement = -1;
+	renderObj = true;
 	lastCursorPos = glm::vec3(0.0f);
 
 	// Using vertices parsed from Geometry's ctor to calculate center point and
@@ -49,9 +50,17 @@ void AmongUsObject::update()
 
 void AmongUsObject::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader)
 {
-	// Update the bounding sphere before calling Geometry's node to actually draw the among us object
-	//boundingSphere->transformSphere(C);
-	Geometry::draw(C, view, projection, viewDir, shader);
+	// Check to make sure that you should draw this object 
+	if (renderObj)
+		Geometry::draw(C, view, projection, viewDir, shader);
+}
+
+void AmongUsObject::setShouldRenderObj(bool r) {
+	renderObj = r;
+}
+
+bool AmongUsObject::shouldRenderObj() {
+	return renderObj;
 }
 
 void AmongUsObject::setBoundingSphere(float r, glm::vec3 pos) {

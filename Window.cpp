@@ -37,6 +37,7 @@ PointCloud* Window::bearPoints;
 
 // When render, will start by facing -z direction
 glm::vec3 Window::userDirection(0.0f, 0.0f, -1.0f);
+std::vector<glm::vec3> Window::allAstroDirections;
 
 // Among us geometries and transforms
 Geometry* Window::lobby;
@@ -143,7 +144,7 @@ bool Window::initializeSceneGraph() {
 	// walls[0] = left wall, walls[1] = stairs wall, walls[2] = right wall, walls[3] = right diag wall
 	// walls[4] = bottom wall, walls[5] = left diag wall
 	walls.push_back(new BoundingPlane(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-7.83008, 0.839228, 2.86939)));
-	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0300001, 0.839228, 1.14939)));
+	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0300001, 0.839228, 0.14939)));
 	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(7.73008, 0.839228, 2.75939)));
 	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(6.64006, 0.839228, 8.6895)));
 	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.19, 0.839228, 9.83953)));
@@ -167,6 +168,7 @@ bool Window::initializeSceneGraph() {
 	allAstronauts.push_back(userAstronaut);
 	allAstroTranslates.push_back(translateUserAstronaut);
 	allAstroRotates.push_back(rotateUserAstronaut);
+	allAstroDirections.push_back(userDirection);
 
 	// Initialize all other astronauts that will be in the lobby
 	initializeOtherAstronauts();
@@ -179,13 +181,18 @@ void Window::initializeOtherAstronauts() {
 	Transform* scaleAstronaut;
 	Transform* translateAstronaut;
 	Transform* rotateAstronaut;
+
+	// Array of colors, unique for each astronaut, where a single color
+	// is used for all diffuse, specular, and ambient
+	std::vector<glm::vec3> colors = getAstronautColors();
+
 	for (int i = 0; i < 3; i++) {
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
-			glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
-			glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
-			glm::vec3(197.0f / 255.0f, 18.0f / 255.0f, 17.0f / 255.0f),
+			colors[i],
+			colors[i],
+			colors[i],
 			0.0f * 128
 		);
 		// Update the bounding sphere to match the model
@@ -205,11 +212,58 @@ void Window::initializeOtherAstronauts() {
 		rotateAstronaut->addChild(scaleAstronaut);
 		scaleAstronaut->addChild(astronaut);
 
+		// Set random start direction for this astronaut
+		int n1 = 0;
+		int n2 = 0;
+		while (n1 == 0 && n2 == 0) {
+			// Keep finding random numbers until we get a direction that isn't (0, 0, 0)
+			if ((rand() % 2) == 0)
+				n1 = rand() % 2;
+			else
+				n1 = -(rand() % 2);
+			if ((rand() % 2) == 0)
+				n2 = rand() % 2;
+			else
+				n2 = -(rand() % 2);
+		}
+		glm::vec3 startDir(n1, 0.0f, n2);
+		allAstroDirections.push_back(startDir);
+		// Set the rotation of the astronaut to face the direction it's moving
+		glm::vec3 originalDir(0.0f, 0.0f, -1.0f); // All models start off facing this direction
+		updateAstronautDirection(startDir * -1.0f, originalDir, rotateAstronaut);
+
 		// Add this astronaut to the list of astronauts
 		allAstronauts.push_back(astronaut);
 		allAstroTranslates.push_back(translateAstronaut);
 		allAstroRotates.push_back(rotateAstronaut);
 	}
+}
+
+std::vector<glm::vec3> Window::getAstronautColors() {
+	std::vector<glm::vec3> colors;
+	// Black
+	colors.push_back(glm::vec3(62.0f / 255.0f, 71.0f / 255.0f, 78.0f / 255.0f));
+	// Blue
+	colors.push_back(glm::vec3(19.0f / 255.0f, 46.0f / 255.0f, 209.0f / 255.0f));
+	// Brown
+	colors.push_back(glm::vec3(113.0f / 255.0f, 73.0f / 255.0f, 29.0f / 255.0f));
+	// Cyan
+	colors.push_back(glm::vec3(57.0f / 255.0f, 254.0f / 255.0f, 221.0f / 255.0f));
+	// Dark green
+	colors.push_back(glm::vec3(19.0f / 255.0f, 128.0f / 255.0f, 44.0f / 255.0f));
+	// Lime
+	colors.push_back(glm::vec3(78.0f / 255.0f, 239.0f / 255.0f, 56.0f / 255.0f));
+	// Orange
+	colors.push_back(glm::vec3(241.0f / 255.0f, 125.0f / 255.0f, 12.0f / 255.0f));
+	// Pink
+	colors.push_back(glm::vec3(236.0f / 255.0f, 84.0f / 255.0f, 187.0f / 255.0f));
+	// Purple
+	colors.push_back(glm::vec3(108.0f / 255.0f, 47.0f / 255.0f, 188.0f / 255.0f));
+	// White
+	colors.push_back(glm::vec3(214.0f / 255.0f, 223.0f / 255.0f, 231.0f / 255.0f));
+	// Yellow
+	colors.push_back(glm::vec3(246.0f / 255.0f, 246.0f / 255.0f, 87.0f / 255.0f));
+	return colors;
 }
 
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
@@ -356,13 +410,18 @@ void Window::idleCallback()
 	for (int i = 0; i < allAstronauts.size(); i++) {
 		Geometry* currAstro = allAstronauts[i];
 		Transform* currAstroTranslate = allAstroTranslates[i];
+		glm::vec3 currDir = allAstroDirections[i];
+
 		// If the current astro is the user, don't randomly move the user
 		if (userAstronaut == currAstro)
 			continue;
-		//if (detectCollisions(currAstro))
-			//continue;
-		currAstroTranslate->transform(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
-		((AmongUsObject*)currAstro)->updateBoundingSphere(glm::translate(glm::vec3(0.0f, 0.0f, 0.01f)));
+		if (detectCollisions(currAstro)) {
+			continue;
+			// If non-user astronaut collides, want it to bounch off the collision into different direction
+		}
+
+		currAstroTranslate->transform(glm::translate(currDir * 0.01f));
+		((AmongUsObject*)currAstro)->updateBoundingSphere(glm::translate(currDir * 0.01f));
 	}
 }
 
@@ -406,7 +465,7 @@ bool Window::detectCollisions(Geometry* obj) {
 	for (int i = 0; i < allAstronauts.size(); i++) {
 		BoundingSphere* otherSphere = ((AmongUsObject*)allAstronauts[i])->getBoundingSphere();
 		if (obj != allAstronauts[i] && bSphere->detectCollision(otherSphere)) {
-			return true;
+			//return true;
 		}
 	}
 
