@@ -86,7 +86,7 @@ public:
 	// Vector of bounding spheres representing the obstacles (loop through to
 	// check if colliding with an obstacle)
 	static std::vector<BoundingSphere*> obstacles;
-	// static std::vector<BoundingPlane*> walls;
+	static std::vector<BoundingPlane*> walls;
 
 	static Geometry* testSphere;
 	static Transform* transformSphere;
@@ -140,7 +140,7 @@ public:
 
 	static void updateCameraIfKeyHold();
 	static void updatePlayerIfKeyHold(bool collision);
-	static bool detectUserCollisions();
+	static bool detectCollisions(Geometry* obj, std::vector<BoundingSphere*> obstacles, std::vector<BoundingPlane*> walls);
 
 	static void updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut);
 

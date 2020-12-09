@@ -37,6 +37,16 @@ bool BoundingSphere::transformSphere(const glm::mat4& C) {
 	return true;
 }
 
+bool BoundingSphere::detectCollisionWithWall(BoundingPlane* wall) {
+	// Calculate the minimum distance from center of sphere with the wall
+	float dist = glm::dot((position - wall->getPosition()), wall->getNormal());
+
+	// If the distance < radius, that means there is a collision
+	if (dist < radius) 
+		return true;
+	return false;
+}
+
 bool BoundingSphere::detectCollision(BoundingSphere* otherSphere) {
 	// Algorithm: if the sum of the squared radii > squared distance between the center points,
 	// then they intersect
@@ -58,6 +68,5 @@ bool BoundingSphere::detectCollision(BoundingSphere* otherSphere) {
 
 	if ((thisRadiusSqrd + otherRadiusSqrd) > sqrdDist)
 		return true;
-	else
-		return false;
+	return false;
 }

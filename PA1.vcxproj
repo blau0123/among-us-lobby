@@ -100,6 +100,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BoundingPlane.cpp" />
     <ClCompile Include="BoundingSphere.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Geometry.cpp" />
@@ -114,6 +115,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingPlane.h" />
     <ClInclude Include="BoundingSphere.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Geometry.h" />

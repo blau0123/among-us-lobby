@@ -42,6 +42,7 @@ glm::vec3 Window::userDirection(0.0f, 0.0f, -1.0f);
 Geometry* Window::lobby;
 Geometry* Window::userAstronaut;
 std::vector<BoundingSphere*> Window::obstacles;
+std::vector<BoundingPlane*> Window::walls;
 Geometry* Window::testSphere;
 
 Transform* Window::transformSphere;
@@ -152,6 +153,17 @@ bool Window::initializeSceneGraph() {
 	// Create bounding spheres for the obstacles in the lobby
 	// obstacles[0] = left box, obstacles[1] = right box
 	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(-4.3, 1.67846, -0.0611274)));
+	obstacles.push_back(new BoundingSphere(1.43041, glm::vec3(4.74001, 1.67846, -1.56113)));
+
+	// Creating bounding planes for the walls 
+	// walls[0] = left wall, walls[1] = stairs wall, walls[2] = right wall, walls[3] = right diag wall
+	// walls[4] = bottom wall, walls[5] = left diag wall
+	walls.push_back(new BoundingPlane(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(-7.55008, 1.67846, -2.22113)));
+	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-0.0499996, 1.67846, -4.57112)));
+	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(7.53008, 1.67846, -3.56112)));
+	walls.push_back(new BoundingPlane(glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(6.67006, 1.67846, 3.33887)));
+	walls.push_back(new BoundingPlane(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.799999, 1.67846, 4.37888)));
+	walls.push_back(new BoundingPlane(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(-6.99006, 1.67846, 3.73887)));
 
 	userAstronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 	userAstronaut->setModelMaterialProperties(
@@ -169,12 +181,6 @@ bool Window::initializeSceneGraph() {
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
 bool Window::initializeObjects()
 {
-	// Create cubemap as our skybox
-	// cube = new Cube(&cubemapTextureID);
-
-	// Create tesselated sphere
-	//sphere = new Sphere();
-
 	lightSphere = new LightSource("obj/sphere.obj", 10);
 	lightSphere->setModelMaterialProperties(
 		glm::vec3(0.0, 0.0, 0.0),
@@ -210,6 +216,10 @@ void Window::cleanUp()
 
 	for (int i = 0; i < obstacles.size(); i++) {
 		delete obstacles[i];
+	}
+
+	for (int i = 0; i < walls.size(); i++) {
+		delete walls[i];
 	}
 
 	// Deallocate scene graph nodes
@@ -298,8 +308,8 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 void Window::idleCallback()
 {
 	if (moving != -1) {
-		bool hasCollided = detectUserCollisions();
-		std::cout << hasCollided << std::endl;
+		bool hasCollided = detectCollisions(userAstronaut, obstacles, walls);
+		//std::cout << hasCollided << std::endl;
 		// The user is holding a key to move/turn the camera
 		updatePlayerIfKeyHold(hasCollided);
 	}
@@ -323,8 +333,8 @@ void Window::displayCallback(GLFWwindow* window)
 }
 
 // if the user is colliding with something, don't let the user move in the current userDirection
-bool Window::detectUserCollisions() {
-	BoundingSphere* userSphere = ((AmongUsObject*)userAstronaut)->getBoundingSphere();
+bool Window::detectCollisions(Geometry* obj, std::vector<BoundingSphere*> obstacles, std::vector<BoundingPlane*> walls) {
+	BoundingSphere* userSphere = ((AmongUsObject*)obj)->getBoundingSphere();
 
 	// Check collisions with any obstacles
 	for (int i = 0; i < obstacles.size(); i++) {
@@ -333,6 +343,12 @@ bool Window::detectUserCollisions() {
 		}
 	}
 	// Check collisions with any walls
+	for (int i = 0; i < walls.size(); i++) {
+		if (userSphere->detectCollisionWithWall(walls[i])) {
+			return true;
+		}
+	}
+
 	// Check collisions with any other astronauts
 	return false;
 }
