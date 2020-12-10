@@ -1,5 +1,5 @@
-#ifndef _BOUNDING_PLANE_H_
-#define _BOUNDING_PLANE_H_
+#ifndef _BOUNDING_SHAPE_H_
+#define _BOUNDING_SHAPE_H_
 
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
@@ -12,6 +12,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include "Node.h"
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -20,17 +22,11 @@
 
 using namespace std;
 
-class BoundingPlane 
+class BoundingShape 
 {
-private:
-	glm::vec3 position;
-	glm::vec3 normal;
-
 public:
-	BoundingPlane(glm::vec3 norm, glm::vec3 pos);
-	glm::vec3 getNormal();
-	glm::vec3 getPosition();
-	void setPosition(glm::mat4& translation);
+	virtual glm::vec3 getPosition() = 0;
+	virtual void setPosition(glm::mat4& translation) = 0;
 };
 
 #endif

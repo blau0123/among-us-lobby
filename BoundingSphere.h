@@ -12,7 +12,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "Node.h"
 #include "BoundingPlane.h"
 
 #include <vector>
@@ -25,12 +24,11 @@ using namespace std;
 
 // BoundingSphere acts as a transform node, where it calls draw() for all children and all
 // children represent the object bounded by this BoundingSphere
-class BoundingSphere : public Node
+class BoundingSphere 
 {
 private:
 	float radius;
 	glm::vec3 position;
-	std::list<Node*> children;
 
 public:
 	BoundingSphere(float r, glm::vec3 pos);
@@ -40,10 +38,6 @@ public:
 	glm::vec3 getPosition();
 	void setPosition(glm::mat4& translation);
 	bool transformSphere(const glm::mat4& C);
-	void addChild(Node* child);
-
-	void draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader);
-	void update();
 };
 
 #endif

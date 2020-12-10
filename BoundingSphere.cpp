@@ -5,21 +5,6 @@ BoundingSphere::BoundingSphere(float r, glm::vec3 pos) {
 	position = pos;
 }
 
-void BoundingSphere::draw(const glm::mat4& C, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewDir, GLuint shader) {
-	// Loop through all children and call their draw's
-	for (Node* child : children) {
-		// Pass in transform matrix so that child knows where to be relative to this transform
-		child->draw(C, view, projection, viewDir, shader);
-	}
-}
-
-void BoundingSphere::update() {
-}
-
-void BoundingSphere::addChild(Node* child) {
-	children.push_back(child);
-}
-
 float BoundingSphere::getRadius() {
 	return radius;
 }
@@ -53,7 +38,7 @@ float BoundingSphere::detectCollision(BoundingSphere* otherSphere) {
 	glm::vec3 otherPos = otherSphere->getPosition();
 	float otherRadius = otherSphere->getRadius();
 	//std::cout << "position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
-	//std::cout << "sphere position: " << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
+	//std::cout << "otherPos position: " << otherPos.x << ", " << otherPos.y << ", " << otherPos.z << std::endl;
 
 	// If the distance between the 2 centers is > r1 + r2, then colliding (dist >= 0)
 	float dist = glm::length(position - otherPos) - (radius + otherRadius);

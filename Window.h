@@ -92,7 +92,7 @@ public:
 	static std::vector<glm::vec3> allAstroDirections;
 
 	// Vector of bounding spheres representing the obstacles (loop through to
-	// check if colliding with an obstacle)
+	// check if colliding with an obstacle) --> obstacles = boundingspheres, walls = boundingplanes
 	static std::vector<BoundingSphere*> obstacles;
 	static std::vector<BoundingPlane*> walls;
 	//static std::vector<BoundingSphere*> allAstronautsSpheres;
@@ -150,7 +150,12 @@ public:
 
 	static void updateCameraIfKeyHold();
 	static void updatePlayerIfKeyHold(float collision);
-	static float detectCollisions(Geometry* obj);
+	static glm::vec3 nonPlayerCollisionResolutionWithWall(Geometry* astro, glm::vec3 currDir, BoundingPlane* collidedWith, Transform* astroTranslate);
+	//static Bounding* detectCollisions(Geometry* obj);
+	static BoundingSphere* detectCollisionWithSphere(Geometry* obj);
+	static BoundingPlane* detectCollisionWithWall(Geometry* obj);
+	static float getCollisionAmount(BoundingSphere* obj, BoundingSphere* obj2);
+	static float getCollisionAmountWithWall(BoundingSphere* obj, BoundingPlane* wall);
 
 	static void updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut);
 	static std::vector<glm::vec3> getAstronautColors();
