@@ -34,8 +34,8 @@ private:
 
 public:
 	BoundingSphere(float r, glm::vec3 pos);
-	bool detectCollision(BoundingSphere* otherSphere);
-	bool detectCollisionWithWall(BoundingPlane* wall);
+	float detectCollision(BoundingSphere* otherSphere);
+	float detectCollisionWithWall(BoundingPlane* wall);
 	float getRadius();
 	glm::vec3 getPosition();
 	void setPosition(glm::mat4& translation);

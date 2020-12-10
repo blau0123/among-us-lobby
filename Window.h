@@ -14,6 +14,8 @@
 #include "Transform.h"
 #include "Geometry.h"
 
+#include <ctime>
+
 class Window
 {
 public:
@@ -147,8 +149,8 @@ public:
 	static void displayCallback(GLFWwindow*);
 
 	static void updateCameraIfKeyHold();
-	static void updatePlayerIfKeyHold(bool collision);
-	static bool detectCollisions(Geometry* obj);
+	static void updatePlayerIfKeyHold(float collision);
+	static float detectCollisions(Geometry* obj);
 
 	static void updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDirection, Transform* rotateSpecificAstronaut);
 	static std::vector<glm::vec3> getAstronautColors();
