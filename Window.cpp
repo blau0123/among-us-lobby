@@ -38,6 +38,7 @@ PointCloud* Window::bearPoints;
 // When render, will start by facing -z direction
 glm::vec3 Window::userDirection(0.0f, 0.0f, -1.0f);
 std::vector<glm::vec3> Window::allAstroDirections;
+std::map<int, glm::vec3> Window::stoppedAstroDirections;
 
 // Among us geometries and transforms
 Geometry* Window::lobby;
@@ -188,7 +189,7 @@ void Window::initializeOtherAstronauts() {
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 10; i++) {
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
@@ -197,10 +198,7 @@ void Window::initializeOtherAstronauts() {
 			colors[i],
 			0.0f * 128
 		);
-		/* Update the bounding sphere to match the model
-		((AmongUsObject*)astronaut)->updateBoundingSphere(glm::translate(glm::vec3((float)(i + 2), 0.0f, 2.5f)) *
-			glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
-		*/
+
 		float random = ((float)rand()) / ((float)RAND_MAX);
 		float randXOffset = (random * (2.0f - 0.5f)) + 0.5f;
 		random = ((float)rand()) / ((float)RAND_MAX);
@@ -250,7 +248,7 @@ void Window::initializeOtherAstronauts() {
 		updateAstronautDirection(startDir * -1.0f, originalDir, rotateAstronaut);
 
 		// Decide whether this astronaut should be rendered (at beginning, 0.5 chance of being rendered)
-		//((AmongUsObject*)astronaut)->setShouldRenderObj((rand() % 2) == 0);
+		((AmongUsObject*)astronaut)->setShouldRenderObj((rand() % 2) == 0);
 
 		// Add this astronaut to the list of astronauts
 		allAstronauts.push_back(astronaut);
@@ -424,10 +422,13 @@ void Window::idleCallback()
 		// Determine what the user collided with, if any
 		BoundingSphere* collideWithSphere = detectCollisionWithSphere(userAstronaut);
 		BoundingPlane* collideWithWall = detectCollisionWithWall(userAstronaut);
+		BoundingSphere* collidedWithAstro = detectCollisionWithAstronauts(userAstronaut);
 		BoundingSphere* userSphere = ((AmongUsObject*)userAstronaut)->getBoundingSphere();
 		float collidedAmt = -1;
 		if (collideWithSphere != NULL)
 			collidedAmt = getCollisionAmount(userSphere, collideWithSphere);
+		else if (collidedWithAstro != NULL)
+			collidedAmt = getCollisionAmount(userSphere, collidedWithAstro);
 		else if (collideWithWall != NULL)
 			collidedAmt = getCollisionAmountWithWall(userSphere, collideWithWall);
 		// The user is holding a key to move/turn the camera
@@ -437,27 +438,66 @@ void Window::idleCallback()
 	// Move all astronauts randomly
 	for (int i = 0; i < allAstronauts.size(); i++) {
 		Geometry* currAstro = allAstronauts[i];
+		Transform* currAstroTranslate = allAstroTranslates[i];
+		Transform* currAstroRotate = allAstroRotates[i];
+		glm::vec3 currDir = allAstroDirections[i];
+
+		// Randomly make astronaut appear or disappear (0.1 chance to disappear if rendered, and
+		// 0.7 chance of appearing if dead)
+		if (((AmongUsObject*)currAstro)->shouldRenderObj() && currAstro != userAstronaut) {
+			if ((rand() % 100000) < 10) {
+				std::cout << "despawning" << std::endl;
+				((AmongUsObject*)currAstro)->setShouldRenderObj(false);
+				std::cout << ((AmongUsObject*)currAstro)->shouldRenderObj() << std::endl;
+			}
+		}
+		else if (currAstro != userAstronaut){
+			if ((rand() % 100000) < 10) {
+				std::cout << "spawning in new" << std::endl;
+				((AmongUsObject*)currAstro)->setShouldRenderObj(true);
+			}
+		}
+
 		// If this astro shouldn't be rendered, don't need to check for collisions
 		// or if this is the user astronaut, don't check bc we already checked for collisions
 		if (!((AmongUsObject*)currAstro)->shouldRenderObj() || currAstro == userAstronaut) {
 			continue;
 		}
 
-		Transform* currAstroTranslate = allAstroTranslates[i];
-		Transform* currAstroRotate = allAstroRotates[i];
-		glm::vec3 currDir = allAstroDirections[i];
-
-		// Randomly make astronaut appear or disappear (0.1 chance to disappear if rendered, and
-		/* 0.7 chance of appearing if dead)
-		if (((AmongUsObject*)currAstro)->shouldRenderObj()) {
-			if ((rand() % 100000) < 10)
-				((AmongUsObject*)currAstro)->setShouldRenderObj(false);
+		// Randomly make the astronaut stop if currDir != (0, 0, 0)
+		if (currDir != glm::vec3(0, 0, 0)) {
+			if ((rand() % 100000) < 10) {
+				// Store the current dir for when starts up again, can determine rotation
+				stoppedAstroDirections[i] = currDir;
+				currDir = glm::vec3(0, 0, 0);
+				allAstroDirections[i] = currDir;
+				continue;
+			}
 		}
 		else {
-			if ((rand() % 100) < 10)
-				((AmongUsObject*)currAstro)->setShouldRenderObj(true);
+			// If the astro is stopped, then give it a random chance to start moving (in a random dir)
+			if ((rand() % 100000) < 10) {
+				int n1 = 0;
+				int n2 = 0;
+				while (n1 == 0 && n2 == 0) {
+					// Keep finding random numbers until we get a direction that isn't (0, 0, 0)
+					if ((rand() % 2) == 0)
+						n1 = rand() % 2;
+					else
+						n1 = -(rand() % 2);
+					if ((rand() % 2) == 0)
+						n2 = rand() % 2;
+					else
+						n2 = -(rand() % 2);
+				}
+				glm::vec3 nextDir(n1, 0.0f, n2);
+				// Set the rotation of the astronaut to face the direction it's moving
+				glm::vec3 originalDir = stoppedAstroDirections[i];
+				updateAstronautDirection(nextDir, originalDir, currAstroRotate);
+				allAstroDirections[i] = nextDir;
+			}
+			continue;
 		}
-		*/
 
 		// Determine what this astronaut collided with, if anything
 		BoundingSphere* didCollideWithSphere = detectCollisionWithSphere(currAstro);
@@ -486,7 +526,7 @@ void Window::idleCallback()
 		}
 		else if (didCollideWithAstro != NULL) {
 			collidedAmt = getCollisionAmount(((AmongUsObject*)currAstro)->getBoundingSphere(), didCollideWithAstro);
-			std::cout << "collis amt: " << collidedAmt << std::endl;
+			//std::cout << "collis amt: " << collidedAmt << std::endl;
 			collidedAmt += 0.05f;
 			// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
 			glm::vec3 offsetDir = currDir * collidedAmt;
@@ -568,8 +608,8 @@ BoundingSphere* Window::detectCollisionWithAstronauts(Geometry* obj) {
 	BoundingSphere* bSphere = ((AmongUsObject*)obj)->getBoundingSphere();
 	// Check collisions with any obstacles
 	for (int i = 0; i < allAstronauts.size(); i++) {
-		// Don't check for collisions between an object and itself
-		if (allAstronauts[i] == obj)
+		// Don't check for collisions between an object and itself OR if this astro isn't rendered
+		if (allAstronauts[i] == obj || !((AmongUsObject*)allAstronauts[i])->shouldRenderObj())
 			continue;
 		BoundingSphere* currAstroBSphere = ((AmongUsObject*)allAstronauts[i])->getBoundingSphere();
 		float amtCollision = bSphere->detectCollision(currAstroBSphere);
@@ -657,10 +697,10 @@ void Window::updatePlayerIfKeyHold(float collision) {
 		collision += 0.05f;
 		// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
 		glm::vec3 offsetDir = userDirection * collision;
-		std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
+		// std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
 		glm::vec3 y = ((AmongUsObject*)userAstronaut)->getBoundingSphere()->getPosition();
-		std::cout << "bounding box pos: " << y.x << ", " << y.y << ", " << y.z << std::endl;
-		std::cout << "---------------------------------------" << std::endl;
+		//std::cout << "bounding box pos: " << y.x << ", " << y.y << ", " << y.z << std::endl;
+		//std::cout << "---------------------------------------" << std::endl;
 		translateUserAstronaut->transform(glm::translate(offsetDir));
 		((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(offsetDir));
 		return;

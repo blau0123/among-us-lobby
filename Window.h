@@ -15,6 +15,7 @@
 #include "Geometry.h"
 
 #include <ctime>
+#include <map>
 
 class Window
 {
@@ -90,6 +91,8 @@ public:
 	// Records the direction that the user is currently facing/walking in (1.0f in the direction it's facing)
 	static glm::vec3 userDirection;
 	static std::vector<glm::vec3> allAstroDirections;
+	// Stores the current directions for astros that are currently stopped
+	static std::map<int, glm::vec3> stoppedAstroDirections;
 
 	// Vector of bounding spheres representing the obstacles (loop through to
 	// check if colliding with an obstacle) --> obstacles = boundingspheres, walls = boundingplanes
