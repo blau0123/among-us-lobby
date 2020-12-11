@@ -13,6 +13,10 @@ glm::vec3 BoundingSphere::getPosition() {
 	return position;
 }
 
+void BoundingSphere::setPositionToVector(glm::vec3 newPos) {
+	position = newPos;
+}
+
 void BoundingSphere::setPosition(glm::mat4& translation) {
 	position = translation * glm::vec4(position, 1.0f);
 }

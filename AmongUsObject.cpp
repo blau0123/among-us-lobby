@@ -33,7 +33,7 @@ AmongUsObject::AmongUsObject(std::string filename, int bfCull, int useTexture, i
 	glm::vec3 objCenter(x_half, y_half, z_half);
 
 	// Finding the max length in the x, y, z direction --> will become radius of bounding sphere
-	float max_len = std::max(std::max(x_max - x_min, y_max - y_min), z_max - z_min);
+	float max_len = std::max(std::max(x_max - x_min, y_max - y_min), z_max - z_min) * 0.5;
 
 	std::cout << "Setting bounding sphere for '" << filename << "' with params: r = " << max_len << ", center = (" <<
 		x_half << "," << y_half << "," << z_half << ")" << std::endl;
@@ -69,6 +69,10 @@ void AmongUsObject::setBoundingSphere(float r, glm::vec3 pos) {
 
 void AmongUsObject::updateBoundingSphere(glm::mat4& translation) {
 	boundingSphere->setPosition(translation);
+}
+
+void AmongUsObject::setBoundingSpherePosition(glm::vec3 newPos) {
+	boundingSphere->setPositionToVector(newPos);
 }
 
 BoundingSphere* AmongUsObject::getBoundingSphere() {

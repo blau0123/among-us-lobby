@@ -150,9 +150,10 @@ public:
 
 	static void updateCameraIfKeyHold();
 	static void updatePlayerIfKeyHold(float collision);
+	static glm::vec3 nonPlayerCollisionResolution(Geometry* astro, glm::vec3 currDir, BoundingSphere* collidedWith, Transform* astroTranslate);
 	static glm::vec3 nonPlayerCollisionResolutionWithWall(Geometry* astro, glm::vec3 currDir, BoundingPlane* collidedWith, Transform* astroTranslate);
-	//static Bounding* detectCollisions(Geometry* obj);
 	static BoundingSphere* detectCollisionWithSphere(Geometry* obj);
+	static BoundingSphere* detectCollisionWithAstronauts(Geometry* obj);
 	static BoundingPlane* detectCollisionWithWall(Geometry* obj);
 	static float getCollisionAmount(BoundingSphere* obj, BoundingSphere* obj2);
 	static float getCollisionAmountWithWall(BoundingSphere* obj, BoundingPlane* wall);

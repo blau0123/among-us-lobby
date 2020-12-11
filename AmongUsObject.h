@@ -35,6 +35,7 @@ public:
 
 	BoundingSphere* getBoundingSphere();
 	void updateBoundingSphere(glm::mat4& translation);
+	void setBoundingSpherePosition(glm::vec3 newPos);
 	void setBoundingSphere(float r, glm::vec3 pos);
 
 	// For trackball rotation of lobby about its center

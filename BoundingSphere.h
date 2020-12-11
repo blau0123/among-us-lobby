@@ -37,6 +37,7 @@ public:
 	float getRadius();
 	glm::vec3 getPosition();
 	void setPosition(glm::mat4& translation);
+	void setPositionToVector(glm::vec3 newPos);
 	bool transformSphere(const glm::mat4& C);
 };
 

@@ -137,8 +137,8 @@ bool Window::initializeSceneGraph() {
 
 	// Create bounding spheres for the obstacles in the lobby
 	// obstacles[0] = left box, obstacles[1] = right box
-	obstacles.push_back(new BoundingSphere(0.3, glm::vec3(-4.38001, 0.839228, 5.02942)));
-	obstacles.push_back(new BoundingSphere(0.3, glm::vec3(4.73001, 0.839228, 3.52939)));
+	obstacles.push_back(new BoundingSphere(0.8, glm::vec3(-4.38001, 0.839228, 5.02942)));
+	obstacles.push_back(new BoundingSphere(0.8, glm::vec3(4.73001, 0.839228, 3.52939)));
 
 	// Creating bounding planes for the walls 
 	// walls[0] = left wall, walls[1] = stairs wall, walls[2] = right wall, walls[3] = right diag wall
@@ -188,7 +188,7 @@ void Window::initializeOtherAstronauts() {
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 2; i++) {
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
@@ -198,14 +198,14 @@ void Window::initializeOtherAstronauts() {
 			0.0f * 128
 		);
 		// Update the bounding sphere to match the model
-		((AmongUsObject*)astronaut)->updateBoundingSphere(glm::translate(glm::vec3((float)i, 0.0f, 2.5f)) *
+		((AmongUsObject*)astronaut)->updateBoundingSphere(glm::translate(glm::vec3((float)(i + 2), 0.0f, 2.5f)) *
 			glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
 
 		// Set up initial scale and position for this astronaut
 		scaleAstronaut = new Transform();
 		scaleAstronaut->transform(glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
 		translateAstronaut = new Transform();
-		translateAstronaut->transform(glm::translate(glm::vec3((float)i, 0.0f, 2.5f)));
+		translateAstronaut->transform(glm::translate(glm::vec3((float)(i + 2), 0.0f, 2.5f)));
 		rotateAstronaut = new Transform();
 
 		// Attach this astronaut to the scene graph to be rendered
@@ -435,11 +435,11 @@ void Window::idleCallback()
 		// Randomly make astronaut appear or disappear (0.1 chance to disappear if rendered, and
 		/* 0.7 chance of appearing if dead)
 		if (((AmongUsObject*)currAstro)->shouldRenderObj()) {
-			if ((rand() % 1000) < 10)
+			if ((rand() % 100000) < 10)
 				((AmongUsObject*)currAstro)->setShouldRenderObj(false);
 		}
 		else {
-			if ((rand() % 1000) < 10)
+			if ((rand() % 100) < 10)
 				((AmongUsObject*)currAstro)->setShouldRenderObj(true);
 		}
 		*/
@@ -447,11 +447,46 @@ void Window::idleCallback()
 		// Determine what this astronaut collided with, if anything
 		BoundingSphere* didCollideWithSphere = detectCollisionWithSphere(currAstro);
 		BoundingPlane* didCollideWithWall = detectCollisionWithWall(currAstro);
+		BoundingSphere* didCollideWithAstro = detectCollisionWithAstronauts(currAstro);
 
 		float collidedAmt = -1;
 		if (didCollideWithSphere != NULL) {
-			continue;
 			collidedAmt = getCollisionAmount(((AmongUsObject*)currAstro)->getBoundingSphere(), didCollideWithSphere);
+			collidedAmt += 0.07f;
+			// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
+			glm::vec3 offsetDir = currDir * collidedAmt;
+			//std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
+			currAstroTranslate->transform(glm::translate(-offsetDir));
+			((AmongUsObject*)currAstro)->updateBoundingSphere(glm::translate(-offsetDir));
+
+			// If non-user astronaut collides, want it to bounch off the collision into different direction
+			glm::vec3 pos = didCollideWithSphere->getPosition();
+			glm::vec3 newDir = nonPlayerCollisionResolution(currAstro, currDir, didCollideWithSphere, currAstroTranslate);
+
+			// Make this astronaut face the dirction that they are reflected to
+			updateAstronautDirection(newDir, currDir, currAstroRotate);
+			// Update the astronaut's current direction to be the reflected direction
+			allAstroDirections[i] = newDir;
+			continue;
+		}
+		else if (didCollideWithAstro != NULL) {
+			collidedAmt = getCollisionAmount(((AmongUsObject*)currAstro)->getBoundingSphere(), didCollideWithAstro);
+			collidedAmt += 0.07f;
+			// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
+			glm::vec3 offsetDir = currDir * collidedAmt;
+			//std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
+			currAstroTranslate->transform(glm::translate(-offsetDir));
+			((AmongUsObject*)currAstro)->updateBoundingSphere(glm::translate(-offsetDir));
+
+			// If non-user astronaut collides, want it to bounch off the collision into different direction
+			glm::vec3 pos = didCollideWithAstro->getPosition();
+			glm::vec3 newDir = nonPlayerCollisionResolution(currAstro, currDir, didCollideWithAstro, currAstroTranslate);
+
+			// Make this astronaut face the dirction that they are reflected to
+			updateAstronautDirection(newDir, currDir, currAstroRotate);
+			// Update the astronaut's current direction to be the reflected direction
+			allAstroDirections[i] = newDir;
+			continue;
 		}
 		else if (didCollideWithWall != NULL) {
 			collidedAmt = getCollisionAmountWithWall(((AmongUsObject*)currAstro)->getBoundingSphere(), didCollideWithWall);
@@ -495,18 +530,7 @@ void Window::displayCallback(GLFWwindow* window)
 	glfwSwapBuffers(window);
 }
 
-/* if the user is colliding with something, don't let the user move in the current userDirection
-	// Check collisions with any other astronauts (that isn't this astronaut)
-	for (int i = 0; i < allAstronauts.size(); i++) {
-		BoundingSphere* otherSphere = ((AmongUsObject*)allAstronauts[i])->getBoundingSphere();
-		if (obj != allAstronauts[i] && bSphere->detectCollision(otherSphere)) {
-			//return true;
-		}
-	}
-*/
-
 float Window::getCollisionAmount(BoundingSphere* obj, BoundingSphere* obj2) {
-	std::cout << obj2->getRadius() << std::endl;
 	return obj->detectCollision(obj2);
 }
 
@@ -519,6 +543,24 @@ BoundingSphere* Window::detectCollisionWithSphere(Geometry* obj) {
 			//if (obj == userAstronaut)
 			//std::cout << "Collided with sphere at " << obstacles[i]->getPosition().x << ", " << obstacles[i]->getPosition().y << ", " << obstacles[i]->getPosition().z << std::endl;
 			return obstacles[i];
+		}
+	}
+	return NULL;
+}
+
+BoundingSphere* Window::detectCollisionWithAstronauts(Geometry* obj) {
+	BoundingSphere* bSphere = ((AmongUsObject*)obj)->getBoundingSphere();
+	// Check collisions with any obstacles
+	for (int i = 0; i < allAstronauts.size(); i++) {
+		// Don't check for collisions between an object and itself
+		if (allAstronauts[i] == obj)
+			continue;
+		BoundingSphere* currAstroBSphere = ((AmongUsObject*)allAstronauts[i])->getBoundingSphere();
+		float amtCollision = bSphere->detectCollision(currAstroBSphere);
+		if (amtCollision != -1.0f) {
+			//if (obj == userAstronaut)
+			//std::cout << "Collided with astro at " << currAstroBSphere->getPosition().x << ", " << currAstroBSphere->getPosition().y << ", " << currAstroBSphere->getPosition().z << std::endl;
+			return currAstroBSphere;
 		}
 	}
 	return NULL;
@@ -544,9 +586,22 @@ float Window::getCollisionAmountWithWall(BoundingSphere* obj, BoundingPlane* wal
 glm::vec3 Window::nonPlayerCollisionResolutionWithWall(Geometry* astro, glm::vec3 currDir, BoundingPlane* collidedWith, Transform* astroTranslate) {
 	// Calculate the reflection direction: reflect = 2(incident \dot norm)norm - incident
 	glm::vec3 bPlaneNorm = collidedWith->getNormal();
-	glm::vec3 reflectDir = currDir - 2 * glm::dot(currDir, bPlaneNorm) * bPlaneNorm;
-	std::cout << "incid dir: " << currDir.x << ", " << currDir.y << ", " << currDir.z << std::endl;
-	std::cout << "reflect dir: " << reflectDir.x << ", " << reflectDir.y << ", " << reflectDir.z << std::endl;
+	glm::vec3 reflectDir = glm::normalize(currDir - 2 * glm::dot(currDir, bPlaneNorm) * bPlaneNorm);
+	//std::cout << "COLLISION WITH WALL------------------------------------------" << std::endl;
+	//std::cout << "incid dir: " << currDir.x << ", " << currDir.y << ", " << currDir.z << std::endl;
+	//std::cout << "reflect dir: " << reflectDir.x << ", " << reflectDir.y << ", " << reflectDir.z << std::endl;
+	return reflectDir;
+}
+
+glm::vec3 Window::nonPlayerCollisionResolution(Geometry* astro, glm::vec3 currDir, BoundingSphere* collidedWith, Transform* astroTranslate) {
+	// Calculate the normal between the two spheres
+	glm::vec3 astroPos = (((AmongUsObject*)astro)->getBoundingSphere())->getPosition();
+	glm::vec3 obstaclePos = collidedWith->getPosition();
+	glm::vec3 norm = (astroPos - obstaclePos) / glm::length(astroPos - obstaclePos);
+	glm::vec3 reflectDir = glm::normalize(currDir - 2 * glm::dot(currDir, norm) * norm);
+	//std::cout << "COLLISION WITH SPHERE/PLAYER------------------------------------------" << std::endl;
+	//std::cout << "incid dir: " << currDir.x << ", " << currDir.y << ", " << currDir.z << std::endl;
+	//std::cout << "reflect dir: " << reflectDir.x << ", " << reflectDir.y << ", " << reflectDir.z << std::endl;
 	return reflectDir;
 }
 
