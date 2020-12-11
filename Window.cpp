@@ -188,7 +188,7 @@ void Window::initializeOtherAstronauts() {
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
@@ -467,7 +467,7 @@ void Window::idleCallback()
 		float collidedAmt = -1;
 		if (didCollideWithSphere != NULL) {
 			collidedAmt = getCollisionAmount(((AmongUsObject*)currAstro)->getBoundingSphere(), didCollideWithSphere);
-			collidedAmt += 0.07f;
+			collidedAmt += 0.05f;
 			// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
 			glm::vec3 offsetDir = currDir * collidedAmt;
 			//std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
@@ -486,7 +486,8 @@ void Window::idleCallback()
 		}
 		else if (didCollideWithAstro != NULL) {
 			collidedAmt = getCollisionAmount(((AmongUsObject*)currAstro)->getBoundingSphere(), didCollideWithAstro);
-			collidedAmt += 0.07f;
+			std::cout << "collis amt: " << collidedAmt << std::endl;
+			collidedAmt += 0.05f;
 			// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
 			glm::vec3 offsetDir = currDir * collidedAmt;
 			//std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
@@ -506,7 +507,7 @@ void Window::idleCallback()
 		else if (didCollideWithWall != NULL) {
 			collidedAmt = getCollisionAmountWithWall(((AmongUsObject*)currAstro)->getBoundingSphere(), didCollideWithWall);
 			// Add epsilon to collision, so not touching other bounding shape
-			collidedAmt += 0.07f;
+			collidedAmt += 0.05f;
 			// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
 			glm::vec3 offsetDir = currDir * collidedAmt;
 			//std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
@@ -651,11 +652,15 @@ void Window::updatePlayerIfKeyHold(float collision) {
 		userDirection = newDirection;
 	}
 	if (collision != -1.0f) {
+		std::cout << "collis: " << collision << std::endl;
 		// Add epsilon to collision, so not touching other bounding shape
-		collision += 0.07f;
+		collision += 0.05f;
 		// Offset the astronaut in the opposite direction that it's facing such that it isn't colliding with the wall anymore
 		glm::vec3 offsetDir = userDirection * collision;
 		std::cout << "Offset by: " << offsetDir.x << ", " << offsetDir.y << ", " << offsetDir.z << std::endl;
+		glm::vec3 y = ((AmongUsObject*)userAstronaut)->getBoundingSphere()->getPosition();
+		std::cout << "bounding box pos: " << y.x << ", " << y.y << ", " << y.z << std::endl;
+		std::cout << "---------------------------------------" << std::endl;
 		translateUserAstronaut->transform(glm::translate(offsetDir));
 		((AmongUsObject*)userAstronaut)->updateBoundingSphere(glm::translate(offsetDir));
 		return;

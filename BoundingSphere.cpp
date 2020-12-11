@@ -45,9 +45,10 @@ float BoundingSphere::detectCollision(BoundingSphere* otherSphere) {
 	//std::cout << "otherPos position: " << otherPos.x << ", " << otherPos.y << ", " << otherPos.z << std::endl;
 
 	// If the distance between the 2 centers is > r1 + r2, then colliding (dist >= 0)
-	float dist = glm::length(position - otherPos) - (radius + otherRadius);
+	//float dist = glm::length(position - otherPos) - (radius + otherRadius);
+	float dist = (radius + otherRadius) - glm::length(position - otherPos);
 	//std::cout << "squard dist: " << sqrdDist << "sqrd radius sum: " << thisRadiusSqrd + otherRadiusSqrd << std::endl;
-	if (dist < 0)
+	if (dist >= 0)
 		return dist;
 	return -1.0f;
 }
