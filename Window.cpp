@@ -188,7 +188,7 @@ void Window::initializeOtherAstronauts() {
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 3; i++) {
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
@@ -197,15 +197,30 @@ void Window::initializeOtherAstronauts() {
 			colors[i],
 			0.0f * 128
 		);
-		// Update the bounding sphere to match the model
+		/* Update the bounding sphere to match the model
 		((AmongUsObject*)astronaut)->updateBoundingSphere(glm::translate(glm::vec3((float)(i + 2), 0.0f, 2.5f)) *
+			glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
+		*/
+		float random = ((float)rand()) / ((float)RAND_MAX);
+		float randXOffset = (random * (2.0f - 0.5f)) + 0.5f;
+		random = ((float)rand()) / ((float)RAND_MAX);
+		float randZOffset = (random * (2.0f - 0.5f)) + 0.5f;
+		if (rand() % 2 == 0)
+			randXOffset *= -1.0f;
+		if (rand() % 2 == 0)
+			randZOffset *= -1.0f;
+		glm::vec3 translateVec(-0.5f + randXOffset, 0.0f, 6.0f + randZOffset);
+		std::cout << "translatevec: " << translateVec.x << ", " << translateVec.y << ", " << translateVec.z << std::endl;
+
+		((AmongUsObject*)astronaut)->updateBoundingSphere(glm::translate(translateVec) *
 			glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
 
 		// Set up initial scale and position for this astronaut
 		scaleAstronaut = new Transform();
 		scaleAstronaut->transform(glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
 		translateAstronaut = new Transform();
-		translateAstronaut->transform(glm::translate(glm::vec3((float)(i + 2), 0.0f, 2.5f)));
+		//translateAstronaut->transform(glm::translate(glm::vec3((float)(i + 2), 0.0f, 2.5f)));
+		translateAstronaut->transform(glm::translate(translateVec));
 		rotateAstronaut = new Transform();
 
 		// Attach this astronaut to the scene graph to be rendered
