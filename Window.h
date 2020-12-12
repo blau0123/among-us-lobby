@@ -9,6 +9,7 @@
 #include "LightSource.h"
 #include "Sphere.h"
 #include "AmongUsObject.h"
+#include "ParticleSystem.h"
 #include "Lobby.h"
 
 #include "Transform.h"
@@ -133,8 +134,13 @@ public:
 	static GLuint shaderProgram;
 	static GLuint skyBoxShaderProgram;
 	static GLuint sphereShaderProgram;
+	static GLuint particleShaderProgram;
 
 	static unsigned int cubemapTextureID;
+
+	static ParticleSystem* particleSystem;
+	// Time since start of program of last frame, used to calc delta time
+	static float oldTime;
 
 	// Constructors and Destructors
 	static bool initializeProgram();

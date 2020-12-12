@@ -39,20 +39,29 @@ private:
 		void update(float deltaTime);
 	};
 	static const int MAX_PARTICLES = 200;
-	static const int PARTICLE_LIFE = 3;
+	static const int PARTICLE_LIFE = 5;
 
 	GLuint VAO, VBO;
-	Particle particles[MAX_PARTICLES];
+	float numAliveParticles = MAX_PARTICLES;
+	glm::vec3 center;
+	//Particle particles[MAX_PARTICLES];
+	std::vector<Particle> particles;
+	std::vector<Particle> deadParticles;
+	//std::vector<glm::vec3> aliveParticlesPositions;
 	// Vector to hold position of all particles, will be stored in VBO --> will hold up to MAX_PARTICLES
 	std::vector<glm::vec3> positions;
-	glm::vec3 position_data[MAX_PARTICLES];
 
 public:
 	ParticleSystem(glm::vec3 systemPos);
 	~ParticleSystem();
 
+	// Used when we want to reuse a particle that had died
+	void respawnParticle(Particle p, float offset);
+	// Return the index for the first dead particle found (to respawn it)
+	int findFirstDeadParticle();
+
 	void update(float deltaTime);
-	void draw(GLuint shader, glm::vec3 cameraPos, glm::mat4 model);
+	void draw(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, GLuint shader);
 };
 
 #endif

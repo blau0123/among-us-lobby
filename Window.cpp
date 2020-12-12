@@ -64,6 +64,9 @@ Object* currObj;
 
 unsigned int Window::cubemapTextureID;
 
+ParticleSystem* Window::particleSystem;
+float Window::oldTime = 0;
+
 // Scene Graph nodes
 Transform* Window::World;
 
@@ -86,15 +89,17 @@ int Window::rotateType = 1;
 GLuint Window::shaderProgram; 
 GLuint Window::skyBoxShaderProgram;
 GLuint Window::sphereShaderProgram;
+GLuint Window::particleShaderProgram;
 
 bool Window::initializeProgram() {
 	// Create a shader program with a vertex shader and a fragment shader.
 	shaderProgram = LoadShaders("shaders/shader.vert", "shaders/shader.frag");
 	skyBoxShaderProgram = LoadShaders("shaders/skyBoxShader.vert", "shaders/skyBoxShader.frag");
 	sphereShaderProgram = LoadShaders("shaders/sphereShader.vert", "shaders/sphereShader.frag");
+	particleShaderProgram = LoadShaders("shaders/particleShader.vert", "shaders/particleShader.frag");
 
 	// Check the shader program.
-	if (!shaderProgram || !skyBoxShaderProgram || !sphereShaderProgram)
+	if (!shaderProgram || !skyBoxShaderProgram || !sphereShaderProgram || !particleShaderProgram)
 	{
 		std::cerr << "Failed to initialize shader program" << std::endl;
 		return false;
@@ -189,7 +194,7 @@ void Window::initializeOtherAstronauts() {
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 0; i++) {
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
@@ -298,6 +303,9 @@ bool Window::initializeObjects()
 	// Initialize light source properties
 	lightSphere->initializeLightSourceProperties(shaderProgram, eyePos);
 
+	// Initialize the particle system
+	particleSystem = new ParticleSystem(glm::vec3(-0.5f, 0.0f, 6.0f));
+
 	return true;
 }
 
@@ -318,6 +326,8 @@ void Window::cleanUp()
 	delete scaleLobby;
 	delete rotateUserAstronaut;
 	delete testSphere;
+
+	delete particleSystem;
 
 	for (int i = 0; i < obstacles.size(); i++) {
 		delete obstacles[i];
@@ -434,6 +444,12 @@ void Window::idleCallback()
 		// The user is holding a key to move/turn the camera
 		updatePlayerIfKeyHold(collidedAmt);
 	}
+
+	// Update particle systems
+	float t = glfwGetTime();
+	float deltaTime = t - oldTime;
+	particleSystem->update(deltaTime);
+	oldTime = t;
 
 	// Move all astronauts randomly
 	for (int i = 0; i < allAstronauts.size(); i++) {
@@ -578,6 +594,7 @@ void Window::displayCallback(GLFWwindow* window)
 	World->draw(glm::mat4(1), view, projection, eyePos, shaderProgram);
 	// Draw light sphere since lightSphere holds the light source that will illuminate the object
 	lightSphere->draw(view, projection, shaderProgram);
+	particleSystem->draw(glm::mat4(1), view, projection, eyePos, particleShaderProgram);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

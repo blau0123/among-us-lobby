@@ -108,6 +108,7 @@
     <ClCompile Include="AmongUsObject.cpp" />
     <ClCompile Include="Lobby.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="PointCloud.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="Sphere.cpp" />
@@ -125,6 +126,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PointCloud.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Sphere.h" />
