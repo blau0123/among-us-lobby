@@ -27,11 +27,11 @@ ParticleSystem::ParticleSystem(glm::vec3 systemPos) {
 
 		// Create initial, semi-random velocity
 		random = ((float)rand()) / ((float)RAND_MAX);
-		float randXVelocity = (random * (1.0f - 0.1)) + 0.1;
+		float randXVelocity = (random * (0.5 + 0.5)) - 0.5;
 		random = ((float)rand()) / ((float)RAND_MAX);
-		float randYVelocity = (random * (1.0f - 0.1)) + 0.1;
+		float randYVelocity = (random * (0.5 + 0.5)) - 0.5;
 		random = ((float)rand()) / ((float)RAND_MAX);
-		float randZVelocity = (random * (1.0f - 0.1)) + 0.1;
+		float randZVelocity = (random * (0.5 + 0.5)) - 0.5;
 		glm::vec3 initVelocity(randXVelocity, randYVelocity, randZVelocity);
 
 		Particle newParticle;
@@ -70,9 +70,6 @@ ParticleSystem::~ParticleSystem() {
 }
 
 void ParticleSystem::respawnParticle(Particle p, float offset) {
-	// Make the random number generator random
-	srand((unsigned int)time(NULL));
-
 	// Create all of the particles with random positions as described above
 	float xPosMax = center.x + offset;
 	float xPosMin = center.x - offset;
@@ -92,11 +89,11 @@ void ParticleSystem::respawnParticle(Particle p, float offset) {
 
 	// Create initial, semi-random velocity
 	random = ((float)rand()) / ((float)RAND_MAX);
-	float randXVelocity = (random * (0.5 - 0.1)) + 0.1;
+	float randXVelocity = (random * (0.5 + 0.5)) - 0.5;
 	random = ((float)rand()) / ((float)RAND_MAX);
-	float randYVelocity = (random * (0.5 - 0.1)) + 0.1;
+	float randYVelocity = (random * (0.5 + 0.5)) - 0.5;
 	random = ((float)rand()) / ((float)RAND_MAX);
-	float randZVelocity = (random * (0.5 - 0.1)) + 0.1;
+	float randZVelocity = (random * (0.5 + 0.5)) - 0.5;
 	glm::vec3 initVelocity(randXVelocity, randYVelocity, randZVelocity);
 
 	p.init(initVelocity, initPos, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -120,13 +117,13 @@ int ParticleSystem::findFirstDeadParticle() {
 void ParticleSystem::update(float deltaTime) {
 	// If there are dead particles (# particles < MAX_PARTICLES), add in some more particles
 	if (deadParticles.size() > 0) {
-		std::cout << "before respawn: " << particles.size() << std::endl;
+		// Make the random number generator random
+		srand((unsigned int)time(NULL));
 		for (int i = 0; i < deadParticles.size(); i++) {
 			respawnParticle(deadParticles[i], 0.2f);
 			// Remove this particle from deadParticles because was revived
 			// deadParticles.erase(deadParticles.begin() + i);
 		}
-		std::cout << "after respawn: " << particles.size() << std::endl;
 		deadParticles.clear();
 	}
 	// Update each particle's life, position (based on velocity), etc.
