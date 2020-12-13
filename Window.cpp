@@ -64,7 +64,7 @@ Object* currObj;
 
 unsigned int Window::cubemapTextureID;
 
-ParticleSystem* Window::particleSystem;
+std::vector<ParticleSystem*> Window::particleSystems; 
 float Window::oldTime = 0;
 
 // Scene Graph nodes
@@ -194,7 +194,7 @@ void Window::initializeOtherAstronauts() {
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 0; i++) {
+	for (int i = 0; i < 2; i++) {
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
@@ -213,7 +213,6 @@ void Window::initializeOtherAstronauts() {
 		if (rand() % 2 == 0)
 			randZOffset *= -1.0f;
 		glm::vec3 translateVec(-0.5f + randXOffset, 0.0f, 6.0f + randZOffset);
-		std::cout << "translatevec: " << translateVec.x << ", " << translateVec.y << ", " << translateVec.z << std::endl;
 
 		((AmongUsObject*)astronaut)->updateBoundingSphere(glm::translate(translateVec) *
 			glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)));
@@ -303,8 +302,15 @@ bool Window::initializeObjects()
 	// Initialize light source properties
 	lightSphere->initializeLightSourceProperties(shaderProgram, eyePos);
 
-	// Initialize the particle system
-	particleSystem = new ParticleSystem(glm::vec3(-0.5f, 0.0f, 6.0f));
+	// Initialize a particle system for each astronaut that will be initially spawned in
+	for (int i = 0; i < allAstronauts.size(); i++) {
+		if (((AmongUsObject*)allAstronauts[i])->shouldRenderObj()) {
+			// Will initially be spawning, so want to set color to white
+			ParticleSystem* newSystem = new ParticleSystem(glm::vec3(-0.5f + i, 0.0f, 6.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+			//newSystem->setColorOfParticleSystem(glm::vec3(1.0f, 1.0f, 1.0f));
+			particleSystems.push_back(newSystem);
+		}
+	}
 
 	return true;
 }
@@ -327,7 +333,8 @@ void Window::cleanUp()
 	delete rotateUserAstronaut;
 	delete testSphere;
 
-	delete particleSystem;
+	for (int i = 0; i < particleSystems.size(); i++)
+		delete particleSystems[i];
 
 	for (int i = 0; i < obstacles.size(); i++) {
 		delete obstacles[i];
@@ -448,7 +455,10 @@ void Window::idleCallback()
 	// Update particle systems
 	float t = glfwGetTime();
 	float deltaTime = t - oldTime;
-	particleSystem->update(deltaTime);
+
+	// In update, will have checks for if particle system should update or not
+	for (int i = 0; i < particleSystems.size(); i++)
+		particleSystems[i]->update(deltaTime);
 	oldTime = t;
 
 	// Move all astronauts randomly
@@ -464,13 +474,46 @@ void Window::idleCallback()
 			if ((rand() % 100000) < 10) {
 				std::cout << "despawning" << std::endl;
 				((AmongUsObject*)currAstro)->setShouldRenderObj(false);
-				std::cout << ((AmongUsObject*)currAstro)->shouldRenderObj() << std::endl;
+
+				// Despawned astronaut, so show particle effect
+				bool foundInactiveSystem = false;
+				for (int i = 0; i < particleSystems.size(); i++) {
+					if (!particleSystems[i]->getIfActive()) {
+						particleSystems[i]->activateParticleSystem();
+						// Use red as the despawn in particle system
+						particleSystems[i]->setColorOfParticleSystem(glm::vec3(1.0f, 0.0f, 0.0f));
+						foundInactiveSystem = true;
+						break;
+					}
+				}
+				if (!foundInactiveSystem) {
+					ParticleSystem* newSystem = new ParticleSystem(glm::vec3(1.0f, 2.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+					//newSystem->setColorOfParticleSystem(glm::vec3(1.0f, 1.0f, 1.0f));
+					particleSystems.push_back(newSystem);
+				}
 			}
 		}
 		else if (currAstro != userAstronaut){
 			if ((rand() % 100000) < 10) {
 				std::cout << "spawning in new" << std::endl;
 				((AmongUsObject*)currAstro)->setShouldRenderObj(true);
+
+				// Spawned in astronaut, so want to show particle effect (find first nonactive particle system, or create new one)
+				bool foundInactiveSystem = false;
+				for (int i = 0; i < particleSystems.size(); i++) {
+					if (!particleSystems[i]->getIfActive()) {
+						particleSystems[i]->activateParticleSystem();
+						// Use white as the spawn in particle system
+						particleSystems[i]->setColorOfParticleSystem(glm::vec3(1.0f, 1.0f, 1.0f));
+						foundInactiveSystem = true;
+						break;
+					}
+				}
+				if (!foundInactiveSystem) {
+					ParticleSystem* newSystem = new ParticleSystem(glm::vec3(1.0f, 2.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+					//newSystem->setColorOfParticleSystem(glm::vec3(1.0f, 1.0f, 1.0f));
+					particleSystems.push_back(newSystem);
+				}
 			}
 		}
 
@@ -594,7 +637,10 @@ void Window::displayCallback(GLFWwindow* window)
 	World->draw(glm::mat4(1), view, projection, eyePos, shaderProgram);
 	// Draw light sphere since lightSphere holds the light source that will illuminate the object
 	lightSphere->draw(view, projection, shaderProgram);
-	particleSystem->draw(glm::mat4(1), view, projection, eyePos, particleShaderProgram);
+	// Only draw the particle system if it's active (will be activated if an astro spawns/despawns)
+	for (int i = 0; i < particleSystems.size(); i++)
+		if (particleSystems[i]->getIfActive())
+			particleSystems[i]->draw(glm::mat4(1), view, projection, eyePos, particleShaderProgram);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

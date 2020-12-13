@@ -1,14 +1,17 @@
 #include "ParticleSystem.h"
 
-ParticleSystem::ParticleSystem(glm::vec3 systemPos) {
+ParticleSystem::ParticleSystem(glm::vec3 systemPos, glm::vec3 initColor) {
 	// Initialize the particle system and create an instance for each particle
 	// We will spawn particles in this system within 1.0f in every axis of the provided pos
 	float offset = 0.2f;
+	active = true;
+	timeSystemAlive = 0;
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
 	// Create all of the particles with random positions as described above
 	center = systemPos;
+	systemColor = initColor;
 	float xPosMax = systemPos.x + offset;
 	float xPosMin = systemPos.x - offset;
 	float yPosMax = systemPos.y + offset;
@@ -35,8 +38,8 @@ ParticleSystem::ParticleSystem(glm::vec3 systemPos) {
 		glm::vec3 initVelocity(randXVelocity, randYVelocity, randZVelocity);
 
 		Particle newParticle;
-		newParticle.init(initVelocity, initPos, glm::vec3(1.0f, 0.0f, 0.0f));
-		newParticle.life = 3;
+		newParticle.init(initVelocity, initPos, initColor);
+		newParticle.life = 1;
 		positions.push_back(initPos);
 		particles.push_back(newParticle);
 		//aliveParticles.push_back(newParticle);
@@ -97,7 +100,7 @@ void ParticleSystem::respawnParticle(Particle p, float offset) {
 	glm::vec3 initVelocity(randXVelocity, randYVelocity, randZVelocity);
 
 	p.init(initVelocity, initPos, glm::vec3(1.0f, 0.0f, 0.0f));
-	p.life = 3;
+	p.life = 1;
 
 	// Add the revived particle and its new position to the particle and position vectors (index aligned)
 	particles.push_back(p);
@@ -114,7 +117,29 @@ int ParticleSystem::findFirstDeadParticle() {
 	return 0;
 }
 
+bool ParticleSystem::getIfActive() {
+	return active;
+}
+
+void ParticleSystem::activateParticleSystem() {
+	active = true;
+	timeSystemAlive = 0;
+}
+
+void ParticleSystem::setColorOfParticleSystem(glm::vec3 color) {
+	systemColor = color;
+	for (int i = 0; i < particles.size(); i++) {
+		particles[i].color = color;
+	}
+}
+
 void ParticleSystem::update(float deltaTime) {
+	if (timeSystemAlive > 3.0f) {
+		active = false;
+		return;
+	}
+	timeSystemAlive += deltaTime;
+
 	// If there are dead particles (# particles < MAX_PARTICLES), add in some more particles
 	if (deadParticles.size() > 0) {
 		// Make the random number generator random
@@ -171,7 +196,7 @@ void ParticleSystem::draw(const glm::mat4& model, const glm::mat4& view, const g
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
 	glUniform3fv(glGetUniformLocation(shader, "cameraPos"), 1, glm::value_ptr(cameraPos));
 
-	glUniform3fv(glGetUniformLocation(shader, "particleColor"), 1, glm::value_ptr(glm::vec3(1.0f, 0.0f, 0.0f)));
+	glUniform3fv(glGetUniformLocation(shader, "particleColor"), 1, glm::value_ptr(systemColor));
 	glUniform1i(glGetUniformLocation(shader, "pointSize"), 80);
 
 	// Bind the VAO

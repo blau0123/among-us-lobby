@@ -138,7 +138,7 @@ public:
 
 	static unsigned int cubemapTextureID;
 
-	static ParticleSystem* particleSystem;
+	static std::vector<ParticleSystem*> particleSystems;
 	// Time since start of program of last frame, used to calc delta time
 	static float oldTime;
 
