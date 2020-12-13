@@ -191,10 +191,9 @@ void Window::initializeOtherAstronauts() {
 	// Array of colors, unique for each astronaut, where a single color
 	// is used for all diffuse, specular, and ambient
 	std::vector<glm::vec3> colors = getAstronautColors();
-	// Make the random number generator random
-	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 5; i++) {
+		srand(time(NULL) + i);
 		// Create astronaut Geometry to be rendered, which own color (bounding sphere is init'd here)
 		astronaut = new AmongUsObject("obj/among_us/amongus_astro_still.obj", 0, 0, 1);
 		astronaut->setModelMaterialProperties(
@@ -293,8 +292,8 @@ std::vector<glm::vec3> Window::getAstronautColors() {
 // Material property values: http://devernay.free.fr/cours/opengl/materials.html
 bool Window::initializeObjects()
 {
-	// Make the random number generator random
-	//srand((unsigned int)time(NULL));
+	// Seed the random number generator
+	//std::random_device rd;
 
 	lightSphere = new LightSource("obj/sphere.obj", 10);
 	lightSphere->setModelMaterialProperties(
@@ -311,6 +310,7 @@ bool Window::initializeObjects()
 	for (int i = 0; i < allAstronauts.size(); i++) {
 		if (((AmongUsObject*)allAstronauts[i])->shouldRenderObj()) {
 			// Will initially be spawning, so want to set color to white
+			srand(time(NULL) + i);
 			float random = ((float)rand()) / ((float)RAND_MAX);
 			float randXOffset = (random * (2.0f - 0.5f)) + 0.5f;
 			random = ((float)rand()) / ((float)RAND_MAX);
@@ -320,6 +320,8 @@ bool Window::initializeObjects()
 			if (rand() % 2 == 0)
 				randZOffset *= -1.0f;
 			glm::vec3 translateVec(-0.5f + randXOffset, 0.0f, 6.0f + randZOffset);
+
+			std::cout << "particle system posit: " << translateVec.x << ", " << translateVec.y << ", " << translateVec.z << std::endl;
 
 			ParticleSystem* newSystem = new ParticleSystem(translateVec, glm::vec3(1.0f, 1.0f, 1.0f), particleShaderProgram);
 			// Rotate each system such that it matches the world's rotation
@@ -451,9 +453,6 @@ void Window::resizeCallback(GLFWwindow* window, int width, int height)
 
 void Window::idleCallback()
 {
-	// Make the random number generator random
-	//srand((unsigned int)time(NULL));
-
 	if (moving != -1) {
 		// Determine what the user collided with, if any
 		BoundingSphere* collideWithSphere = detectCollisionWithSphere(userAstronaut);
@@ -482,7 +481,8 @@ void Window::idleCallback()
 
 	// Move all astronauts randomly
 	for (int i = 0; i < allAstronauts.size(); i++) {
-		//srand((unsigned int)time(NULL));
+		//srand(time(NULL) + i);
+
 		Geometry* currAstro = allAstronauts[i];
 		Transform* currAstroTranslate = allAstroTranslates[i];
 		Transform* currAstroRotate = allAstroRotates[i];
@@ -507,6 +507,7 @@ void Window::idleCallback()
 					}
 				}
 				if (!foundInactiveSystem) {
+					srand(time(NULL) + i);
 					// Will initially be spawning, so want to set color to white
 					float random = ((float)rand()) / ((float)RAND_MAX);
 					float randXOffset = (random * (2.0f - 0.5f)) + 0.5f;
@@ -518,8 +519,12 @@ void Window::idleCallback()
 						randZOffset *= -1.0f;
 					glm::vec3 translateVec(-0.5f + randXOffset, 0.0f, 6.0f + randZOffset);
 
+					std::cout << "particle system posit: " << translateVec.x << ", " << translateVec.y << ", " << translateVec.z << std::endl;
+
 					ParticleSystem* newSystem = new ParticleSystem(translateVec, glm::vec3(1.0f, 0.0f, 0.0f), particleShaderProgram);
-					//newSystem->setColorOfParticleSystem(glm::vec3(1.0f, 1.0f, 1.0f));
+					// Rotate each system such that it matches the world's rotation
+					newSystem->updateSystemModel(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+					particleSystems.push_back(newSystem);
 				}
 			}
 		}
@@ -540,6 +545,7 @@ void Window::idleCallback()
 					}
 				}
 				if (!foundInactiveSystem) {
+					srand(time(NULL) + i);
 					// Will initially be spawning, so want to set color to white
 					float random = ((float)rand()) / ((float)RAND_MAX);
 					float randXOffset = (random * (2.0f - 0.5f)) + 0.5f;
@@ -551,8 +557,11 @@ void Window::idleCallback()
 						randZOffset *= -1.0f;
 					glm::vec3 translateVec(-0.5f + randXOffset, 0.0f, 6.0f + randZOffset);
 
+					std::cout << "particle system posit: " << translateVec.x << ", " << translateVec.y << ", " << translateVec.z << std::endl;
+
 					ParticleSystem* newSystem = new ParticleSystem(translateVec, glm::vec3(1.0f, 1.0f, 1.0f), particleShaderProgram);
-					//newSystem->setColorOfParticleSystem(glm::vec3(1.0f, 1.0f, 1.0f));
+					// Rotate each system such that it matches the world's rotation
+					newSystem->updateSystemModel(glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 					particleSystems.push_back(newSystem);
 				}
 			}
