@@ -1,11 +1,14 @@
 #include "ParticleSystem.h"
 
-ParticleSystem::ParticleSystem(glm::vec3 systemPos, glm::vec3 initColor) {
+ParticleSystem::ParticleSystem(glm::vec3 systemPos, glm::vec3 initColor, GLuint particleSystemShader) {
 	// Initialize the particle system and create an instance for each particle
 	// We will spawn particles in this system within 1.0f in every axis of the provided pos
 	float offset = 0.2f;
+	systemShader = particleSystemShader;
 	active = true;
 	timeSystemAlive = 0;
+	systemModel = glm::mat4(1);
+
 	// Make the random number generator random
 	srand((unsigned int)time(NULL));
 
@@ -117,6 +120,10 @@ int ParticleSystem::findFirstDeadParticle() {
 	return 0;
 }
 
+void ParticleSystem::updateSystemModel(glm::mat4 transform) {
+	systemModel = transform * systemModel;
+}
+
 bool ParticleSystem::getIfActive() {
 	return active;
 }
@@ -187,23 +194,23 @@ void ParticleSystem::update(float deltaTime) {
 }
 
 void ParticleSystem::draw(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, GLuint shader) {
-	// Actiavte the shader program 
+	// Activate the shader program 
+	// Don't use the shader passed in by the Transform node, since it will use the Phong shader
 	glUseProgram(shader);
-
+	//glm::mat4 test = glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * model;
 	// Get the shader variable locations and send the uniform data to the shader 
-	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(systemModel));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1, false, glm::value_ptr(projection));
 	glUniform3fv(glGetUniformLocation(shader, "cameraPos"), 1, glm::value_ptr(cameraPos));
 
 	glUniform3fv(glGetUniformLocation(shader, "particleColor"), 1, glm::value_ptr(systemColor));
-	glUniform1i(glGetUniformLocation(shader, "pointSize"), 80);
+	glUniform1i(glGetUniformLocation(shader, "pointSize"), 20);
 
 	// Bind the VAO
 	glBindVertexArray(VAO);
 
 	// Set point size
-	glPointSize(3);
 	// Draw the points
 	glDrawArrays(GL_POINTS, 0, positions.size());
 

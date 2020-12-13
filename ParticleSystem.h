@@ -38,10 +38,13 @@ private:
 		// Run one time-step
 		void update(float deltaTime);
 	};
-	static const int MAX_PARTICLES = 200;
+	static const int MAX_PARTICLES = 400;
 	static const int PARTICLE_LIFE = 3;
 
+	glm::mat4 systemModel;
+
 	bool active;
+	GLuint systemShader;
 	float timeSystemAlive = 0;
 	GLuint VAO, VBO;
 	float numAliveParticles = MAX_PARTICLES;
@@ -53,7 +56,7 @@ private:
 	std::vector<glm::vec3> positions;
 
 public:
-	ParticleSystem(glm::vec3 systemPos, glm::vec3 initColor);
+	ParticleSystem(glm::vec3 systemPos, glm::vec3 initColor, GLuint particleSystemShader);
 	~ParticleSystem();
 
 	// Used when we want to reuse a particle that had died
@@ -63,6 +66,8 @@ public:
 	bool getIfActive();
 	void activateParticleSystem();
 	void setColorOfParticleSystem(glm::vec3 color);
+
+	void updateSystemModel(glm::mat4 transform);
 
 	void update(float deltaTime);
 	void draw(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, GLuint shader);
