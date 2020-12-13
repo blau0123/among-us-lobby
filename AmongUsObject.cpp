@@ -8,6 +8,7 @@ AmongUsObject::AmongUsObject(std::string filename, int bfCull, int useTexture, i
 	: Geometry(filename, bfCull, useTexture, useToonShading)
 {
 	movement = -1;
+	isMoving = true;
 	renderObj = true;
 	lastCursorPos = glm::vec3(0.0f);
 
@@ -61,6 +62,14 @@ void AmongUsObject::setShouldRenderObj(bool r) {
 
 bool AmongUsObject::shouldRenderObj() {
 	return renderObj;
+}
+
+void AmongUsObject::setIsMoving(bool s) {
+	isMoving = s;
+}
+
+bool AmongUsObject::getIsMoving() {
+	return isMoving;
 }
 
 void AmongUsObject::setBoundingSphere(float r, glm::vec3 pos) {

@@ -20,6 +20,7 @@ private:
 	bool renderObj;
 	// Determines if we are rotating the object or not --> 0 = ROTATE
 	int movement;
+	bool isMoving;
 	glm::vec3 lastCursorPos;
 
 public:
@@ -32,6 +33,9 @@ public:
 
 	bool shouldRenderObj();
 	void setShouldRenderObj(bool r);
+
+	bool getIsMoving();
+	void setIsMoving(bool s);
 
 	BoundingSphere* getBoundingSphere();
 	void updateBoundingSphere(glm::mat4& translation);

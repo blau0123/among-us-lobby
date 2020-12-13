@@ -246,10 +246,11 @@ void Window::initializeOtherAstronauts() {
 				n2 = -(rand() % 2);
 		}
 		glm::vec3 startDir(n1, 0.0f, n2);
-		allAstroDirections.push_back(startDir);
 		// Set the rotation of the astronaut to face the direction it's moving
 		glm::vec3 originalDir(0.0f, 0.0f, -1.0f); // All models start off facing this direction
-		updateAstronautDirection(startDir * -1.0f, originalDir, rotateAstronaut);
+		startDir = glm::vec3(-1.0f, 0.0f, -1.0f);
+		if ((startDir * -1.0f) != originalDir)
+			updateAstronautDirection(startDir * -1.0f, originalDir, rotateAstronaut);
 
 		// Decide whether this astronaut should be rendered (at beginning, 0.5 chance of being rendered)
 		((AmongUsObject*)astronaut)->setShouldRenderObj((rand() % 2) == 0);
@@ -258,6 +259,7 @@ void Window::initializeOtherAstronauts() {
 		allAstronauts.push_back(astronaut);
 		allAstroTranslates.push_back(translateAstronaut);
 		allAstroRotates.push_back(rotateAstronaut);
+		allAstroDirections.push_back(startDir);
 	}
 }
 
@@ -490,7 +492,7 @@ void Window::idleCallback()
 		// 0.7 chance of appearing if dead)
 		if (((AmongUsObject*)currAstro)->shouldRenderObj() && currAstro != userAstronaut) {
 			if ((rand() % 100000) < 10) {
-				std::cout << "despawning" << std::endl;
+				//std::cout << "despawning" << std::endl;
 				((AmongUsObject*)currAstro)->setShouldRenderObj(false);
 
 				// Despawned astronaut, so show particle effect
@@ -523,7 +525,7 @@ void Window::idleCallback()
 		}
 		else if (currAstro != userAstronaut){
 			if ((rand() % 100000) < 10) {
-				std::cout << "spawning in new" << std::endl;
+				//std::cout << "spawning in new" << std::endl;
 				((AmongUsObject*)currAstro)->setShouldRenderObj(true);
 
 				// Spawned in astronaut, so want to show particle effect (find first nonactive particle system, or create new one)
@@ -562,37 +564,17 @@ void Window::idleCallback()
 			continue;
 		}
 
-		// Randomly make the astronaut stop if currDir != (0, 0, 0)
-		if (currDir != glm::vec3(0, 0, 0)) {
+		// Randomly make the astronaut stop
+		if (((AmongUsObject*)currAstro)->getIsMoving()) {
 			if ((rand() % 100000) < 10) {
-				// Store the current dir for when starts up again, can determine rotation
-				stoppedAstroDirections[i] = currDir;
-				currDir = glm::vec3(0, 0, 0);
-				allAstroDirections[i] = currDir;
+				((AmongUsObject*)currAstro)->setIsMoving(false);
 				continue;
 			}
 		}
 		else {
 			// If the astro is stopped, then give it a random chance to start moving (in a random dir)
 			if ((rand() % 100000) < 10) {
-				int n1 = 0;
-				int n2 = 0;
-				while (n1 == 0 && n2 == 0) {
-					// Keep finding random numbers until we get a direction that isn't (0, 0, 0)
-					if ((rand() % 2) == 0)
-						n1 = rand() % 2;
-					else
-						n1 = -(rand() % 2);
-					if ((rand() % 2) == 0)
-						n2 = rand() % 2;
-					else
-						n2 = -(rand() % 2);
-				}
-				glm::vec3 nextDir(n1, 0.0f, n2);
-				// Set the rotation of the astronaut to face the direction it's moving
-				glm::vec3 originalDir = stoppedAstroDirections[i];
-				updateAstronautDirection(nextDir, originalDir, currAstroRotate);
-				allAstroDirections[i] = nextDir;
+				((AmongUsObject*)currAstro)->setIsMoving(true);
 			}
 			continue;
 		}
@@ -662,8 +644,11 @@ void Window::idleCallback()
 			continue;
 		}
 
-		currAstroTranslate->transform(glm::translate(currDir * 0.01f));
-		((AmongUsObject*)currAstro)->updateBoundingSphere(glm::translate(currDir * 0.01f));
+		// If astronaut is not stopped, then update its position
+		if (((AmongUsObject*)currAstro)->getIsMoving()) {
+			currAstroTranslate->transform(glm::translate(currDir * 0.008f));
+			((AmongUsObject*)currAstro)->updateBoundingSphere(glm::translate(currDir * 0.008f));
+		}
 	}
 }
 
@@ -817,8 +802,8 @@ void Window::updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDire
 	glm::vec3 rotateDirection = newDirection - currDirection;
 	float velocity = glm::length(rotateDirection);
 	glm::vec3 rotAxis = glm::cross(currDirection, newDirection);
-	//std::cout << "curr dir: " << currDirection.x << ", " << currDirection.y << ", " << currDirection.z << std::endl;
-	//std::cout << "new dir: " << newDirection.x << ", " << newDirection.y << ", " << newDirection.z << std::endl;
+	// std::cout << "curr dir: " << currDirection.x << ", " << currDirection.y << ", " << currDirection.z << std::endl;
+	// std::cout << "new dir: " << newDirection.x << ", " << newDirection.y << ", " << newDirection.z << std::endl;
 
 	float dotProd = glm::dot(glm::normalize(newDirection), glm::normalize(currDirection));
 	//std::cout << "dot prod: " << dotProd << std::endl;
@@ -829,7 +814,7 @@ void Window::updateAstronautDirection(glm::vec3 newDirection, glm::vec3 currDire
 		rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
 		rot_angle = glm::radians(180.0f);
 	}
-	//std::cout << "Angle: " << glm::degrees(rot_angle) << " degrees, " << rot_angle << " radians" << "; rotAxis: " << rotAxis.x << ", " << rotAxis.y << ", " << rotAxis.z << std::endl;
+	// std::cout << "Angle: " << glm::degrees(rot_angle) << " degrees, " << rot_angle << " radians" << "; rotAxis: " << rotAxis.x << ", " << rotAxis.y << ", " << rotAxis.z << std::endl;
 	//std::cout << "---------------------------------------------------------" << std::endl;
 	rotateSpecificAstronaut->transform(glm::rotate(rot_angle, rotAxis));
 }
